@@ -7,6 +7,7 @@ const features = [
     title: "Idea & Lyrics",
     desc: "Pick a theme or type your own. AI generates catchy, age-appropriate song lyrics with verses, chorus, and more.",
     color: "from-blue-500 to-blue-600",
+    screenshot: "/screenshots/step1-idea-lyrics.png",
   },
   {
     step: "02",
@@ -14,6 +15,7 @@ const features = [
     title: "Storyboard & Images",
     desc: "AI breaks your song into cinematic scenes and generates stunning, consistent illustrations for each one.",
     color: "from-amber-500 to-orange-500",
+    screenshot: "/screenshots/step2-storyboard.png",
   },
   {
     step: "03",
@@ -21,6 +23,7 @@ const features = [
     title: "Animation & Music",
     desc: "Transform still images into animated video clips with Veo AI. Generate a matching soundtrack with Lyria.",
     color: "from-emerald-500 to-green-600",
+    screenshot: "/screenshots/step3-animation.png",
   },
   {
     step: "04",
@@ -28,6 +31,7 @@ const features = [
     title: "Final Editor",
     desc: "Arrange scenes on a timeline, add transitions and effects, then render your complete music video.",
     color: "from-purple-500 to-violet-600",
+    screenshot: "/screenshots/step3-animation.png",
   },
 ];
 
@@ -62,19 +66,17 @@ export default function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
-        {/* Background decoration */}
+      <section className="pt-28 pb-8 px-6 relative overflow-hidden">
         <div className="absolute top-20 left-1/4 w-96 h-96 bg-blue-400/10 rounded-full blur-3xl" />
         <div className="absolute top-40 right-1/4 w-80 h-80 bg-amber-400/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[600px] h-64 bg-green-400/5 rounded-full blur-3xl" />
 
         <div className="max-w-5xl mx-auto text-center relative z-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full mb-8">
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 border border-primary/10 rounded-full mb-6">
             <span className="w-2 h-2 rounded-full bg-tertiary animate-pulse" />
             <span className="text-xs font-bold text-primary uppercase tracking-wider">Powered by Google Gemini + Veo + Lyria</span>
           </div>
 
-          <h1 className="text-6xl md:text-7xl font-black tracking-tight leading-[1.05] mb-6">
+          <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.05] mb-5">
             Create Kids Music Videos
             <br />
             <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-amber-500 bg-clip-text text-transparent">
@@ -82,11 +84,11 @@ export default function LandingPage() {
             </span>
           </h1>
 
-          <p className="text-xl text-on-surface-variant max-w-2xl mx-auto mb-10 leading-relaxed">
+          <p className="text-lg text-on-surface-variant max-w-2xl mx-auto mb-8 leading-relaxed">
             From idea to finished music video in minutes. AI generates lyrics, illustrations, animations, and soundtrack &mdash; all you do is pick a theme.
           </p>
 
-          <div className="flex items-center justify-center gap-4 mb-16">
+          <div className="flex items-center justify-center gap-4 mb-12">
             <Link
               href="/login"
               className="px-10 py-4 bg-gradient-to-r from-primary to-blue-500 text-white font-black text-lg rounded-full shadow-2xl shadow-primary/30 hover:shadow-primary/50 transition-all hover:scale-105 active:scale-95 flex items-center gap-3"
@@ -103,49 +105,32 @@ export default function LandingPage() {
             </a>
           </div>
 
-          {/* App Preview */}
-          <div className="relative mx-auto max-w-4xl">
-            <div className="bg-gradient-to-b from-surface-container-low to-surface-container rounded-2xl border-2 border-white shadow-2xl shadow-blue-900/10 p-2">
-              <div className="bg-surface-container-lowest rounded-xl overflow-hidden">
-                {/* Fake app screenshot using UI elements */}
-                <div className="flex">
-                  {/* Mini sidebar */}
-                  <div className="w-16 bg-blue-50 p-3 flex flex-col items-center gap-3 border-r border-surface-container">
-                    <div className="w-8 h-8 rounded-xl bg-blue-600 flex items-center justify-center">
-                      <span className="material-symbols-outlined text-white text-sm">auto_awesome</span>
-                    </div>
-                    <div className="w-8 h-2 rounded bg-blue-200" />
-                    <div className="w-8 h-2 rounded bg-surface-container-high" />
-                    <div className="w-8 h-2 rounded bg-surface-container-high" />
-                  </div>
-                  {/* Main content preview */}
-                  <div className="flex-1 p-6">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="h-3 w-48 bg-blue-600/20 rounded" />
-                      <div className="flex gap-2 ml-auto">
-                        <div className="h-3 w-16 bg-surface-container-high rounded" />
-                        <div className="h-3 w-20 bg-blue-600/30 rounded" />
-                      </div>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="col-span-2 h-40 rounded-xl bg-gradient-to-br from-blue-100 to-purple-50 flex items-center justify-center">
-                        <div className="text-center">
-                          <span className="material-symbols-outlined text-4xl text-blue-400 mb-2 block">movie_filter</span>
-                          <div className="h-2 w-32 bg-blue-200 rounded mx-auto mb-1" />
-                          <div className="h-2 w-24 bg-blue-100 rounded mx-auto" />
-                        </div>
-                      </div>
-                      <div className="space-y-3">
-                        <div className="h-[74px] rounded-xl bg-amber-50 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-2xl text-amber-400">music_note</span>
-                        </div>
-                        <div className="h-[74px] rounded-xl bg-green-50 flex items-center justify-center">
-                          <span className="material-symbols-outlined text-2xl text-green-400">image</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+          {/* Hero Screenshot - Dashboard */}
+          <div className="relative mx-auto max-w-5xl">
+            <div className="bg-gradient-to-b from-surface-container-low to-surface-container rounded-2xl border border-white/80 shadow-2xl shadow-blue-900/15 p-1.5 overflow-hidden">
+              <img
+                src="/screenshots/dashboard-overview.png"
+                alt="SparkGen AI Dashboard - My Studio"
+                className="w-full rounded-xl"
+              />
+            </div>
+            {/* Floating badges */}
+            <div className="absolute -left-4 top-1/4 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3 border border-surface-container-high">
+              <div className="w-10 h-10 rounded-xl bg-tertiary-container flex items-center justify-center">
+                <span className="material-symbols-outlined filled text-tertiary">auto_awesome</span>
+              </div>
+              <div>
+                <p className="font-black text-sm text-on-surface">AI Generated</p>
+                <p className="text-xs text-on-surface-variant">Lyrics + Images + Video</p>
+              </div>
+            </div>
+            <div className="absolute -right-4 top-1/3 bg-white rounded-2xl shadow-xl p-4 flex items-center gap-3 border border-surface-container-high">
+              <div className="w-10 h-10 rounded-xl bg-secondary-container flex items-center justify-center">
+                <span className="material-symbols-outlined filled text-secondary">speed</span>
+              </div>
+              <div>
+                <p className="font-black text-sm text-on-surface">Under 5 min</p>
+                <p className="text-xs text-on-surface-variant">Full MV creation</p>
               </div>
             </div>
           </div>
@@ -153,7 +138,7 @@ export default function LandingPage() {
       </section>
 
       {/* Stats Bar */}
-      <section className="py-10 bg-gradient-to-r from-primary to-blue-500">
+      <section className="py-10 mt-8 bg-gradient-to-r from-primary to-blue-500">
         <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
           {stats.map((stat) => (
             <div key={stat.label} className="text-center text-white">
@@ -164,7 +149,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* How It Works */}
+      {/* How It Works - with screenshots */}
       <section id="how-it-works" className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
@@ -178,22 +163,39 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {features.map((feature) => (
+          {/* Feature blocks with alternating layout */}
+          <div className="space-y-20">
+            {features.map((feature, i) => (
               <div
                 key={feature.step}
-                className="group relative bg-surface-container-lowest rounded-2xl p-8 shadow-sm hover:shadow-xl transition-all duration-300 border border-surface-container-high/50"
+                className={`flex flex-col ${i % 2 === 0 ? "lg:flex-row" : "lg:flex-row-reverse"} items-center gap-10`}
               >
-                <div className="flex items-start gap-5">
-                  <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center shrink-0 shadow-lg group-hover:scale-110 transition-transform`}>
-                    <span className="material-symbols-outlined text-white text-2xl filled">{feature.icon}</span>
-                  </div>
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span className="text-xs font-black text-on-surface-variant/40 uppercase tracking-widest">Step {feature.step}</span>
+                {/* Text */}
+                <div className="flex-1 max-w-md">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${feature.color} flex items-center justify-center shadow-lg`}>
+                      <span className="material-symbols-outlined text-white text-xl filled">{feature.icon}</span>
                     </div>
-                    <h3 className="text-xl font-black text-on-surface mb-2">{feature.title}</h3>
-                    <p className="text-on-surface-variant leading-relaxed">{feature.desc}</p>
+                    <span className="text-xs font-black text-on-surface-variant/40 uppercase tracking-widest">Step {feature.step}</span>
+                  </div>
+                  <h3 className="text-3xl font-black text-on-surface mb-3">{feature.title}</h3>
+                  <p className="text-on-surface-variant text-lg leading-relaxed">{feature.desc}</p>
+                  <Link
+                    href="/login"
+                    className="inline-flex items-center gap-2 mt-6 font-bold text-primary hover:underline"
+                  >
+                    Try it now
+                    <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                  </Link>
+                </div>
+                {/* Screenshot */}
+                <div className="flex-1">
+                  <div className="bg-gradient-to-b from-surface-container-low to-surface-container rounded-2xl border border-white/80 shadow-xl p-1.5 overflow-hidden">
+                    <img
+                      src={feature.screenshot}
+                      alt={`Step ${feature.step}: ${feature.title}`}
+                      className="w-full rounded-xl"
+                    />
                   </div>
                 </div>
               </div>
@@ -211,27 +213,19 @@ export default function LandingPage() {
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
-              <div className="w-12 h-12 rounded-xl bg-blue-100 flex items-center justify-center mx-auto mb-4">
-                <span className="material-symbols-outlined text-blue-600 text-2xl">edit_note</span>
+            {[
+              { icon: "edit_note", color: "bg-blue-100", iconColor: "text-blue-600", title: "Gemini 2.5 Flash", desc: "Lyrics generation, scene planning, creative writing with streaming output" },
+              { icon: "videocam", color: "bg-green-100", iconColor: "text-green-600", title: "Veo 3.1", desc: "Image-to-video animation at 720p/1080p/4K with 6-8 second clips" },
+              { icon: "music_note", color: "bg-amber-100", iconColor: "text-amber-600", title: "Lyria 3", desc: "AI music composition with vocals, matching your lyrics perfectly" },
+            ].map((model) => (
+              <div key={model.title} className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
+                <div className={`w-12 h-12 rounded-xl ${model.color} flex items-center justify-center mx-auto mb-4`}>
+                  <span className={`material-symbols-outlined ${model.iconColor} text-2xl`}>{model.icon}</span>
+                </div>
+                <h3 className="font-black text-lg mb-2">{model.title}</h3>
+                <p className="text-sm text-on-surface-variant">{model.desc}</p>
               </div>
-              <h3 className="font-black text-lg mb-2">Gemini 2.5 Flash</h3>
-              <p className="text-sm text-on-surface-variant">Lyrics generation, scene planning, creative writing with streaming output</p>
-            </div>
-            <div className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
-              <div className="w-12 h-12 rounded-xl bg-green-100 flex items-center justify-center mx-auto mb-4">
-                <span className="material-symbols-outlined text-green-600 text-2xl">videocam</span>
-              </div>
-              <h3 className="font-black text-lg mb-2">Veo 3.1</h3>
-              <p className="text-sm text-on-surface-variant">Image-to-video animation at 720p/1080p/4K with 6-8 second clips</p>
-            </div>
-            <div className="bg-surface-container-lowest rounded-2xl p-8 shadow-sm">
-              <div className="w-12 h-12 rounded-xl bg-amber-100 flex items-center justify-center mx-auto mb-4">
-                <span className="material-symbols-outlined text-amber-600 text-2xl">music_note</span>
-              </div>
-              <h3 className="font-black text-lg mb-2">Lyria 3</h3>
-              <p className="text-sm text-on-surface-variant">AI music composition with vocals, matching your lyrics perfectly</p>
-            </div>
+            ))}
           </div>
         </div>
       </section>
@@ -244,42 +238,43 @@ export default function LandingPage() {
           <p className="text-on-surface-variant text-lg mb-12">No subscriptions. No hidden fees. Just AI generation costs.</p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-            <div className="bg-surface-container-lowest rounded-2xl p-8 border-2 border-surface-container-high shadow-sm">
-              <div className="text-sm font-black text-on-surface-variant uppercase tracking-wider mb-2">Budget</div>
-              <div className="text-4xl font-black text-on-surface mb-1">~$3</div>
-              <div className="text-sm text-on-surface-variant mb-6">per music video</div>
-              <ul className="text-left space-y-3 text-sm">
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 5 scenes, 4s clips</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 720p Fast render</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 30s AI soundtrack</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> AI lyrics + images</li>
-              </ul>
-            </div>
-
-            <div className="bg-gradient-to-b from-primary to-blue-600 rounded-2xl p-8 text-white shadow-xl shadow-primary/20 relative scale-105">
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-secondary-container text-on-secondary-container text-xs font-black rounded-full">POPULAR</div>
-              <div className="text-sm font-black text-blue-200 uppercase tracking-wider mb-2">Standard</div>
-              <div className="text-4xl font-black mb-1">~$12</div>
-              <div className="text-sm text-blue-200 mb-6">per music video</div>
-              <ul className="text-left space-y-3 text-sm">
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-lg filled">check_circle</span> 5 scenes, 6s clips</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-lg filled">check_circle</span> 1080p Standard</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-lg filled">check_circle</span> 30s AI soundtrack</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-lg filled">check_circle</span> AI lyrics + images</li>
-              </ul>
-            </div>
-
-            <div className="bg-surface-container-lowest rounded-2xl p-8 border-2 border-surface-container-high shadow-sm">
-              <div className="text-sm font-black text-on-surface-variant uppercase tracking-wider mb-2">Premium</div>
-              <div className="text-4xl font-black text-on-surface mb-1">~$38</div>
-              <div className="text-sm text-on-surface-variant mb-6">per music video</div>
-              <ul className="text-left space-y-3 text-sm">
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 8 scenes, 8s clips</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 4K Standard</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> 2min Pro soundtrack</li>
-                <li className="flex items-center gap-2"><span className="material-symbols-outlined text-tertiary text-lg filled">check_circle</span> Ultra quality images</li>
-              </ul>
-            </div>
+            {[
+              {
+                tier: "Budget", price: "~$3", features: ["5 scenes, 4s clips", "720p Fast render", "30s AI soundtrack", "AI lyrics + images"],
+                style: "bg-surface-container-lowest border-2 border-surface-container-high text-on-surface",
+                priceColor: "text-on-surface",
+              },
+              {
+                tier: "Standard", price: "~$12", badge: "POPULAR",
+                features: ["5 scenes, 6s clips", "1080p Standard", "30s AI soundtrack", "AI lyrics + images"],
+                style: "bg-gradient-to-b from-primary to-blue-600 text-white scale-105",
+                priceColor: "text-white",
+              },
+              {
+                tier: "Premium", price: "~$38", features: ["8 scenes, 8s clips", "4K Standard", "2min Pro soundtrack", "Ultra quality images"],
+                style: "bg-surface-container-lowest border-2 border-surface-container-high text-on-surface",
+                priceColor: "text-on-surface",
+              },
+            ].map((plan) => (
+              <div key={plan.tier} className={`rounded-2xl p-8 shadow-sm relative ${plan.style}`}>
+                {plan.badge && (
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-secondary-container text-on-secondary-container text-xs font-black rounded-full">
+                    {plan.badge}
+                  </div>
+                )}
+                <div className="text-sm font-black uppercase tracking-wider mb-2 opacity-70">{plan.tier}</div>
+                <div className={`text-4xl font-black mb-1 ${plan.priceColor}`}>{plan.price}</div>
+                <div className="text-sm mb-6 opacity-70">per music video</div>
+                <ul className="text-left space-y-3 text-sm">
+                  {plan.features.map((f) => (
+                    <li key={f} className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg filled">check_circle</span>
+                      {f}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
         </div>
       </section>
