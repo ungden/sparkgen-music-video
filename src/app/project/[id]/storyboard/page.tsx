@@ -41,7 +41,8 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lyrics: currentProject.lyrics,
-          theme: currentProject.selectedTheme.title || currentProject.customPrompt || "children's song",
+          theme: currentProject.selectedTheme.title || currentProject.customPrompt || "song",
+          genreSlug: currentProject.genre,
         }),
       });
 
@@ -77,7 +78,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
       const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: scene.description }),
+        body: JSON.stringify({ description: scene.description, genreSlug: currentProject?.genre }),
       });
 
       if (!res.ok) {

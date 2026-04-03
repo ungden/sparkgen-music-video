@@ -5,6 +5,7 @@ import TopNav from "@/components/TopNav";
 import StreamingText, { parseLyrics } from "@/components/StreamingText";
 import { useProject } from "@/context/ProjectContext";
 import { ThemeIdea, Lyrics } from "@/types/project";
+import { getGenreList, DEFAULT_GENRE } from "@/lib/genres";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState, useEffect, useCallback } from "react";
@@ -22,6 +23,8 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
   const [isLoadingThemes, setIsLoadingThemes] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedGenre, setSelectedGenre] = useState(DEFAULT_GENRE);
+  const genreList = getGenreList();
 
   useEffect(() => {
     setCurrentProject(id);
@@ -30,6 +33,9 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
   // Restore saved state when project loads
   useEffect(() => {
     if (!currentProject) return;
+    if (currentProject.genre) {
+      setSelectedGenre(currentProject.genre as typeof selectedGenre);
+    }
     if (currentProject.lyrics && !lyrics) {
       setLyrics(currentProject.lyrics);
     }
@@ -39,6 +45,16 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [currentProject, lyrics, themes.length]);
 
+  const handleGenreSelect = (slug: typeof selectedGenre) => {
+    setSelectedGenre(slug);
+    updateProject(id, { genre: slug });
+    // Reset themes when genre changes
+    setThemes([]);
+    setSelectedTheme(-1);
+    setLyrics(null);
+    setStreamedText("");
+  };
+
   const fetchThemes = useCallback(async () => {
     setIsLoadingThemes(true);
     setError(null);
@@ -46,7 +62,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
       const res = await fetch("/api/generate-ideas", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({}),
+        body: JSON.stringify({ genreSlug: selectedGenre }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -59,7 +75,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
     } finally {
       setIsLoadingThemes(false);
     }
-  }, []);
+  }, [selectedGenre]);
 
   // Auto-fetch themes on first load (only if no saved data)
   useEffect(() => {
@@ -78,7 +94,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
       const res = await fetch("/api/generate-lyrics", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ theme, customPrompt: prompt }),
+        body: JSON.stringify({ theme, customPrompt: prompt, genreSlug: selectedGenre }),
       });
 
       if (!res.ok) {
@@ -186,6 +202,27 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
             <button onClick={() => setError(null)} className="material-symbols-outlined text-error text-lg shrink-0 hover:opacity-70">close</button>
           </div>
         )}
+
+        {/* Genre Picker */}
+        <div className="max-w-4xl mx-auto mb-8">
+          <h2 className="text-lg font-bold text-on-surface mb-3">Choose a Genre</h2>
+          <div className="flex flex-wrap gap-2">
+            {genreList.map((g) => (
+              <button
+                key={g.slug}
+                onClick={() => handleGenreSelect(g.slug)}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                  selectedGenre === g.slug
+                    ? "bg-primary text-on-primary shadow-lg shadow-primary/20 scale-105"
+                    : `${g.color} hover:shadow-md hover:scale-105`
+                }`}
+              >
+                <span className="material-symbols-outlined text-base">{g.icon}</span>
+                {g.label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         {/* Split Screen Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-full items-start">

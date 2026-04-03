@@ -6,28 +6,39 @@ export const maxDuration = 300; // Allow up to 5 minutes for video generation
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    if (!body.imageBase64 || !body.prompt) {
+    if ((!body.imageBase64 && !body.imageUrl) || !body.prompt) {
       return NextResponse.json(
-        { error: "imageBase64 and prompt required" },
+        { error: "imageBase64 or imageUrl and prompt required" },
         { status: 400 }
       );
     }
 
     const ai = getGeminiClient();
+    let imageBytes = body.imageBase64 as string | undefined;
+
+    if (!imageBytes && body.imageUrl) {
+      const imageResponse = await fetch(body.imageUrl);
+      if (!imageResponse.ok) {
+        return NextResponse.json({ error: "Failed to fetch scene image" }, { status: 400 });
+      }
+      const imageBuffer = Buffer.from(await imageResponse.arrayBuffer());
+      imageBytes = imageBuffer.toString("base64");
+    }
 
     // Start async video generation with Veo (image-to-video)
     let operation = await ai.models.generateVideos({
-      model: "veo-3.1-generate-preview",
+      model: "veo-3.1-lite-generate-preview",
       prompt: body.prompt,
       image: {
-        imageBytes: body.imageBase64,
+        imageBytes: imageBytes!,
         mimeType: "image/png",
       },
       config: {
         aspectRatio: "16:9",
         resolution: "720p",
-        durationSeconds: body.duration || "6",
+        durationSeconds: body.duration ? Number(body.duration) : 6,
         numberOfVideos: 1,
+        personGeneration: "allow_adult", // Required for Veo image-to-video
       },
     });
 
@@ -60,6 +71,7 @@ export async function POST(request: NextRequest) {
       done: true,
       videoFileName: video.uri || "generated-video",
       videoUri: video.uri || "",
+      videoUrl: video.uri || "",
     });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";

@@ -5,7 +5,7 @@ const features = [
     step: "01",
     icon: "lightbulb",
     title: "Idea & Lyrics",
-    desc: "Pick a theme or type your own. AI generates catchy, age-appropriate song lyrics with verses, chorus, and more.",
+    desc: "Pick a genre and theme. AI generates catchy song lyrics with verses, chorus, and more — for any style.",
     color: "from-blue-500 to-blue-600",
     screenshot: "/screenshots/step1-idea-lyrics.png",
   },
@@ -77,7 +77,7 @@ export default function LandingPage() {
           </div>
 
           <h1 className="text-5xl md:text-7xl font-black tracking-tight leading-[1.05] mb-5">
-            Create Kids Music Videos
+            Create Music Videos
             <br />
             <span className="bg-gradient-to-r from-blue-600 via-purple-500 to-amber-500 bg-clip-text text-transparent">
               with AI Magic
@@ -290,7 +290,7 @@ export default function LandingPage() {
             Ready to Make Magic?
           </h2>
           <p className="text-xl text-blue-100 mb-10 leading-relaxed">
-            Join creators and educators who are already making AI-powered music videos for kids.
+            Join creators who are already making AI-powered music videos for any genre.
           </p>
           <Link
             href="/login"

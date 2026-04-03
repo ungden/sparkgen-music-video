@@ -1,5 +1,7 @@
 import { getGeminiClient } from "@/lib/gemini";
 import { buildScenesPrompt } from "@/lib/prompts";
+import { normalizeGeneratedScenes } from "@/lib/scenes";
+import { Lyrics } from "@/types/project";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
@@ -14,9 +16,11 @@ export async function POST(request: NextRequest) {
       .map(([section, lines]) => `[${section}]\n${(lines as string[]).join("\n")}`)
       .join("\n\n");
 
+    const numScenes = Number(body.numScenes || 8);
+
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: buildScenesPrompt(lyricsText, body.theme, body.numScenes || 5),
+      model: "gemini-3.1-pro-preview",
+      contents: buildScenesPrompt(lyricsText, body.theme, numScenes, body.genreSlug),
       config: {
         responseMimeType: "application/json",
         temperature: 0.8,
@@ -24,27 +28,24 @@ export async function POST(request: NextRequest) {
     });
 
     const text = result.text ?? "";
-    let scenes;
+    let data;
     try {
-      scenes = JSON.parse(text);
+      data = JSON.parse(text);
     } catch {
       return NextResponse.json({ error: "AI returned invalid JSON. Please try again." }, { status: 500 });
     }
 
-    if (!Array.isArray(scenes)) {
+    if (!data.scenes || !Array.isArray(data.scenes)) {
       return NextResponse.json({ error: "AI returned incomplete data. Please try again." }, { status: 500 });
     }
 
-    const formattedScenes = scenes.map((s: Record<string, string>, i: number) => ({
-      id: i + 1,
-      title: s.title,
-      time: s.time,
-      lyrics: s.lyrics,
-      description: s.description,
-      status: "pending" as const,
-    }));
+    const formattedScenes = normalizeGeneratedScenes(data.scenes, body.lyrics as Lyrics, numScenes);
 
-    return NextResponse.json({ scenes: formattedScenes });
+    return NextResponse.json({
+      scenes: formattedScenes,
+      characterPrompt: data.characterDescription,
+      artStyle: data.visualStyle
+    });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : "Unknown error";
     console.error("generate-scenes error:", msg);

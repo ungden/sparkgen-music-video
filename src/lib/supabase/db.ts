@@ -39,11 +39,12 @@ export async function createProject(userId: string): Promise<string> {
 
 export async function updateProject(
   id: string,
-  updates: Partial<Pick<Project, "title" | "description" | "status" | "selectedTheme" | "customPrompt" | "lyrics" | "music">>
+  updates: Partial<Pick<Project, "title" | "description" | "genre" | "status" | "selectedTheme" | "customPrompt" | "lyrics" | "music">>
 ): Promise<void> {
   const dbUpdates: Record<string, unknown> = {};
   if (updates.title !== undefined) dbUpdates.title = updates.title;
   if (updates.description !== undefined) dbUpdates.description = updates.description;
+  if (updates.genre !== undefined) dbUpdates.genre = updates.genre;
   if (updates.status !== undefined) dbUpdates.status = updates.status;
   if (updates.selectedTheme !== undefined) dbUpdates.selected_theme = updates.selectedTheme;
   if (updates.customPrompt !== undefined) dbUpdates.custom_prompt = updates.customPrompt;
@@ -152,6 +153,7 @@ function mapDbProject(row: Record<string, unknown>): Project {
     id: row.id as string,
     title: row.title as string,
     description: (row.description as string) || "",
+    genre: (row.genre as string) || undefined,
     status: row.status as Project["status"],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,

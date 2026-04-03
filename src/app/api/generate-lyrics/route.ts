@@ -15,8 +15,8 @@ export async function POST(request: NextRequest) {
     const ai = getGeminiClient();
 
     const response = await ai.models.generateContentStream({
-      model: "gemini-2.5-flash",
-      contents: buildLyricsPrompt(body.theme || "", body.customPrompt),
+      model: "gemini-3.1-pro-preview",
+      contents: buildLyricsPrompt(body.theme || "", body.customPrompt, body.genreSlug),
       config: { temperature: 1.0 },
     });
 

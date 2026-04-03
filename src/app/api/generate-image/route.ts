@@ -10,13 +10,52 @@ export async function POST(request: NextRequest) {
     }
 
     const ai = getGeminiClient();
-    const prompt = buildImagePrompt(body.description, body.style);
+    let promptText = buildImagePrompt(body.description, body.style, body.genreSlug);
+
+    if (body.characterReferenceBase64 || body.characterReferenceUrl) {
+      promptText = `Use the attached image as the main character reference. Place this EXACT character into the following new scene and pose:
+
+${promptText}
+
+CRITICAL: The background, pose, and environment MUST match the new scene description. Do NOT just recreate the reference image's blank background. Maintain the character's facial features and clothing perfectly.`;
+    }
+
+    const contents: Array<{
+      text?: string;
+      inlineData?: { mimeType: string; data: string };
+    }> = [{ text: promptText }];
+
+    if (body.characterReferenceBase64) {
+      contents.push({
+        inlineData: {
+          mimeType: "image/jpeg",
+          data: body.characterReferenceBase64,
+        },
+      });
+    } else if (body.characterReferenceUrl) {
+      const referenceResponse = await fetch(body.characterReferenceUrl);
+      if (!referenceResponse.ok) {
+        return NextResponse.json({ error: "Failed to fetch character reference image" }, { status: 400 });
+      }
+      const mimeType = referenceResponse.headers.get("content-type") || "image/png";
+      const referenceBuffer = Buffer.from(await referenceResponse.arrayBuffer());
+      contents.push({
+        inlineData: {
+          mimeType,
+          data: referenceBuffer.toString("base64"),
+        },
+      });
+    }
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.0-flash-exp",
-      contents: prompt,
+      model: "gemini-3.1-flash-image-preview",
+      contents,
       config: {
-        responseModalities: ["TEXT", "IMAGE"],
+        responseModalities: ["IMAGE"],
+        imageConfig: {
+          aspectRatio: "16:9",
+          imageSize: "2K",
+        },
       },
     });
 

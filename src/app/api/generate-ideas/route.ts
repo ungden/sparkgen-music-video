@@ -8,11 +8,11 @@ export async function POST(request: NextRequest) {
     const ai = getGeminiClient();
 
     const result = await ai.models.generateContent({
-      model: "gemini-2.5-flash",
-      contents: buildIdeasPrompt(body.genre),
+      model: "gemini-3.1-pro-preview",
+      contents: buildIdeasPrompt(body.genre, body.genreSlug),
       config: {
         responseMimeType: "application/json",
-        temperature: 1.2,
+        temperature: 1.0,
       },
     });
 

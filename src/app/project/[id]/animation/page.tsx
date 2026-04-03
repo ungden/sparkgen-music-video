@@ -6,6 +6,7 @@ import CostCalculator from "@/components/CostCalculator";
 import { useProject } from "@/context/ProjectContext";
 import { Scene } from "@/types/project";
 import { buildVideoPrompt } from "@/lib/prompts";
+import { getGenre } from "@/lib/genres";
 import Link from "next/link";
 import { use, useState, useEffect, useCallback, useRef } from "react";
 
@@ -63,7 +64,7 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imageBase64: scene.imageBase64,
-          prompt: buildVideoPrompt(scene.description),
+          prompt: buildVideoPrompt(scene.description, currentProject?.genre),
           duration: "6",
         }),
       });
@@ -129,15 +130,14 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
         .map(([section, lines]) => `[${section}]\n${(lines as string[]).join("\n")}`)
         .join("\n\n");
 
+      const genreConfig = getGenre(currentProject.genre);
       const res = await fetch("/api/generate-music", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           lyrics: lyricsText,
-          theme: currentProject.selectedTheme?.title || "children's song",
-          genre: "Fun children's pop",
-          mood: "Happy, playful, energetic",
-          tempo: "120 BPM",
+          theme: currentProject.selectedTheme?.title || "song",
+          genreSlug: currentProject.genre,
         }),
       });
 
@@ -152,9 +152,9 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
         music: {
           audioBase64: data.audioBase64,
           mimeType: data.mimeType,
-          genre: "Children's Pop",
-          mood: "Happy & Playful",
-          tempo: "120 BPM",
+          genre: genreConfig.musicSpec.genre,
+          mood: genreConfig.musicSpec.mood,
+          tempo: genreConfig.musicSpec.tempo,
           status: "done",
         },
       });

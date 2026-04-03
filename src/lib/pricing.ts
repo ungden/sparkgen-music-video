@@ -10,8 +10,8 @@ export const PRICING = {
   },
 
   // --- Image Generation ---
-  "gemini-2.0-flash-image": {
-    label: "Gemini 2.0 Flash (Image Gen)",
+  "gemini-3.1-flash-image-preview": {
+    label: "Gemini 3.1 Flash Image",
     perImage: 0.04,
   },
   "imagen-4-fast": {
@@ -29,6 +29,9 @@ export const PRICING = {
 
   // --- Video Generation (Veo) ---
   veo: {
+    "3.1-lite": {
+      standard: { "720p": 0.05, "1080p": 0.08 },
+    },
     "3.1": {
       standard: { "720p": 0.40, "1080p": 0.40, "4k": 0.60 },
       fast:     { "720p": 0.15, "1080p": 0.15, "4k": 0.35 },
@@ -56,11 +59,11 @@ const AVG_TOKENS = {
   scenesPrompt: { input: 800, output: 1200 },
 };
 
-export type VeoVersion = "3.1" | "3" | "2";
+export type VeoVersion = "3.1-lite" | "3.1" | "3" | "2";
 export type VeoSpeed = "standard" | "fast";
 export type VeoResolution = "720p" | "1080p" | "4k";
 export type LyriaTier = "clip" | "pro";
-export type ImageModel = "gemini-2.0-flash-image" | "imagen-4-fast" | "imagen-4-standard" | "imagen-4-ultra";
+export type ImageModel = "gemini-3.1-flash-image-preview" | "imagen-4-fast" | "imagen-4-standard" | "imagen-4-ultra";
 
 export interface CostBreakdown {
   step: string;
@@ -79,16 +82,20 @@ export interface CostOptions {
   veoResolution: VeoResolution;
   lyriaTier: LyriaTier;
   imageModel: ImageModel;
+  actualTokens?: {
+    input: number;
+    output: number;
+  };
 }
 
 export const DEFAULT_OPTIONS: CostOptions = {
-  numScenes: 5,
+  numScenes: 8,
   videoDuration: 6,
-  veoVersion: "3.1",
+  veoVersion: "3.1-lite",
   veoSpeed: "standard",
   veoResolution: "720p",
-  lyriaTier: "clip",
-  imageModel: "gemini-2.0-flash-image",
+  lyriaTier: "pro",
+  imageModel: "gemini-3.1-flash-image-preview",
 };
 
 export function getVeoPrice(version: VeoVersion, speed: VeoSpeed, resolution: VeoResolution): number | null {
@@ -100,7 +107,7 @@ export function getVeoPrice(version: VeoVersion, speed: VeoSpeed, resolution: Ve
 }
 
 export function getImagePrice(model: ImageModel): number {
-  if (model === "gemini-2.0-flash-image") return PRICING["gemini-2.0-flash-image"].perImage;
+  if (model === "gemini-3.1-flash-image-preview") return PRICING["gemini-3.1-flash-image-preview"].perImage;
   if (model === "imagen-4-fast") return PRICING["imagen-4-fast"].perImage;
   if (model === "imagen-4-standard") return PRICING["imagen-4-standard"].perImage;
   if (model === "imagen-4-ultra") return PRICING["imagen-4-ultra"].perImage;
@@ -108,51 +115,66 @@ export function getImagePrice(model: ImageModel): number {
 }
 
 export function calculateProjectCost(options: CostOptions = DEFAULT_OPTIONS) {
-  const { numScenes, videoDuration, veoVersion, veoSpeed, veoResolution, lyriaTier, imageModel } = options;
+  const { numScenes, videoDuration, veoVersion, veoSpeed, veoResolution, lyriaTier, imageModel, actualTokens } = options;
   const items: CostBreakdown[] = [];
 
-  // Step 1: Idea Generation
-  const ideasCost =
-    (AVG_TOKENS.ideasPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
-    (AVG_TOKENS.ideasPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
-  items.push({
-    step: "Step 1",
-    model: "Gemini 2.5 Flash",
-    description: "Generate 4 theme ideas",
-    quantity: 1,
-    unitCost: ideasCost,
-    totalCost: ideasCost,
-  });
+  if (actualTokens) {
+    const totalTextCost =
+      (actualTokens.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
+      (actualTokens.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
 
-  // Step 1: Lyrics Generation
-  const lyricsCost =
-    (AVG_TOKENS.lyricsPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
-    (AVG_TOKENS.lyricsPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
-  items.push({
-    step: "Step 1",
-    model: "Gemini 2.5 Flash",
-    description: "Generate song lyrics",
-    quantity: 1,
-    unitCost: lyricsCost,
-    totalCost: lyricsCost,
-  });
+    items.push({
+      step: "Step 1 & 2",
+      model: "Gemini 2.5 Flash",
+      description: `Exact token usage (Input: ${actualTokens.input}, Output: ${actualTokens.output})`,
+      quantity: 1,
+      unitCost: totalTextCost,
+      totalCost: totalTextCost,
+    });
+  } else {
+    // Step 1: Idea Generation
+    const ideasCost =
+      (AVG_TOKENS.ideasPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
+      (AVG_TOKENS.ideasPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
+    items.push({
+      step: "Step 1",
+      model: "Gemini 2.5 Flash",
+      description: "Generate 4 theme ideas",
+      quantity: 1,
+      unitCost: ideasCost,
+      totalCost: ideasCost,
+    });
 
-  // Step 2: Scene Descriptions
-  const scenesCost =
-    (AVG_TOKENS.scenesPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
-    (AVG_TOKENS.scenesPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
-  items.push({
-    step: "Step 2",
-    model: "Gemini 2.5 Flash",
-    description: "Generate scene descriptions",
-    quantity: 1,
-    unitCost: scenesCost,
-    totalCost: scenesCost,
-  });
+    // Step 1: Lyrics Generation
+    const lyricsCost =
+      (AVG_TOKENS.lyricsPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
+      (AVG_TOKENS.lyricsPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
+    items.push({
+      step: "Step 1",
+      model: "Gemini 2.5 Flash",
+      description: "Generate song lyrics",
+      quantity: 1,
+      unitCost: lyricsCost,
+      totalCost: lyricsCost,
+    });
+
+    // Step 2: Scene Descriptions
+    const scenesCost =
+      (AVG_TOKENS.scenesPrompt.input / 1_000_000) * PRICING["gemini-2.5-flash"].inputPer1M +
+      (AVG_TOKENS.scenesPrompt.output / 1_000_000) * PRICING["gemini-2.5-flash"].outputPer1M;
+    items.push({
+      step: "Step 2",
+      model: "Gemini 2.5 Flash",
+      description: "Generate scene descriptions",
+      quantity: 1,
+      unitCost: scenesCost,
+      totalCost: scenesCost,
+    });
+  }
 
   // Step 2: Image Generation
   const imgPrice = getImagePrice(imageModel);
-  const imgLabel = imageModel === "gemini-2.0-flash-image" ? "Gemini Flash" :
+  const imgLabel = imageModel === "gemini-3.1-flash-image-preview" ? "Gemini 3.1 Flash" :
     imageModel === "imagen-4-fast" ? "Imagen 4 Fast" :
     imageModel === "imagen-4-standard" ? "Imagen 4 Std" : "Imagen 4 Ultra";
   items.push({
@@ -191,8 +213,6 @@ export function calculateProjectCost(options: CostOptions = DEFAULT_OPTIONS) {
   });
 
   const totalCost = items.reduce((sum, item) => sum + item.totalCost, 0);
-
-  // Total video duration for the whole project
   const totalVideoDuration = numScenes * videoDuration;
 
   return { items, totalCost, totalVideoDuration };

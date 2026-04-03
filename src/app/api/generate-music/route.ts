@@ -15,11 +15,13 @@ export async function POST(request: NextRequest) {
       body.theme,
       body.genre,
       body.mood,
-      body.tempo
+      body.tempo,
+      body.instruments,
+      body.genreSlug
     );
 
     const response = await ai.models.generateContent({
-      model: "lyria-3-clip-preview",
+      model: "lyria-3-pro-preview",
       contents: prompt,
       config: {
         responseModalities: ["AUDIO", "TEXT"],

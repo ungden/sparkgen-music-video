@@ -11,7 +11,7 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 
 export const metadata: Metadata = {
   title: "SparkGen AI - Magic Music Video Maker",
-  description: "AI-powered children's music video automation tool",
+  description: "AI-powered music video maker — generate lyrics, visuals, animations, and soundtracks for any genre",
 };
 
 export default function RootLayout({
