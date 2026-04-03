@@ -6,6 +6,7 @@ import { useProject } from "@/context/ProjectContext";
 import { Project } from "@/types/project";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 function StatusBadge({ status }: { status: string }) {
   const styles: Record<string, string> = {
@@ -52,18 +53,49 @@ function getStepUrl(project: Project): string {
 }
 
 export default function Dashboard() {
-  const { projects, createProject } = useProject();
+  const { projects, createProject, deleteProject, updateProject } = useProject();
   const router = useRouter();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   const handleNewProject = () => {
     const id = createProject();
     router.push(`/project/${id}/idea`);
   };
 
+  const startRename = (e: React.MouseEvent, project: Project) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setEditingId(project.id);
+    setEditTitle(project.title);
+  };
+
+  const saveRename = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingId && editTitle.trim()) {
+      updateProject(editingId, { title: editTitle.trim() });
+    }
+    setEditingId(null);
+  };
+
+  const handleDelete = (e: React.MouseEvent, id: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setConfirmDeleteId(id);
+  };
+
+  const confirmDelete = () => {
+    if (confirmDeleteId) {
+      deleteProject(confirmDeleteId);
+      setConfirmDeleteId(null);
+    }
+  };
+
   return (
     <>
       <Sidebar />
-      <main className="ml-64 min-h-screen p-8 lg:p-12">
+      <main className="ml-0 md:ml-64 min-h-screen p-4 md:p-8 lg:p-12">
         <TopNav />
         <div className="pt-20">
           <header className="flex justify-between items-center mb-12">
@@ -135,7 +167,29 @@ export default function Dashboard() {
                             </div>
                           )}
                         </div>
-                        <h4 className="text-lg font-black text-on-surface mb-1">{project.title}</h4>
+                        {editingId === project.id ? (
+                          <form onSubmit={saveRename} className="mb-1" onClick={(e) => e.preventDefault()}>
+                            <input
+                              autoFocus
+                              value={editTitle}
+                              onChange={(e) => setEditTitle(e.target.value)}
+                              onBlur={saveRename}
+                              className="text-lg font-black text-on-surface bg-surface-container px-2 py-1 rounded-lg w-full border-2 border-primary"
+                            />
+                          </form>
+                        ) : (
+                          <div className="flex items-center gap-2 mb-1 group/title">
+                            <h4 className="text-lg font-black text-on-surface flex-1 truncate">{project.title}</h4>
+                            <div className="opacity-0 group-hover/title:opacity-100 flex gap-1 shrink-0">
+                              <button onClick={(e) => startRename(e, project)} className="p-1 hover:bg-surface-container rounded-lg" title="Rename">
+                                <span className="material-symbols-outlined text-sm text-on-surface-variant">edit</span>
+                              </button>
+                              <button onClick={(e) => handleDelete(e, project.id)} className="p-1 hover:bg-red-50 rounded-lg" title="Delete">
+                                <span className="material-symbols-outlined text-sm text-red-500">delete</span>
+                              </button>
+                            </div>
+                          </div>
+                        )}
                         <p className="text-sm text-on-surface-variant mb-4">
                           {project.scenes?.length
                             ? `${project.scenes.length} scenes`
@@ -206,6 +260,27 @@ export default function Dashboard() {
           )}
         </div>
       </main>
+
+      {/* Delete Confirmation Dialog */}
+      {confirmDeleteId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={() => setConfirmDeleteId(null)}>
+          <div className="bg-white rounded-2xl p-8 max-w-sm mx-4 shadow-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mb-4 mx-auto">
+              <span className="material-symbols-outlined text-red-500 text-2xl">delete</span>
+            </div>
+            <h3 className="text-lg font-black text-on-surface text-center mb-2">Delete Project?</h3>
+            <p className="text-sm text-on-surface-variant text-center mb-6">This action cannot be undone. All scenes, images, and generated content will be permanently deleted.</p>
+            <div className="flex gap-3">
+              <button onClick={() => setConfirmDeleteId(null)} className="flex-1 py-3 rounded-xl font-bold bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+                Cancel
+              </button>
+              <button onClick={confirmDelete} className="flex-1 py-3 rounded-xl font-bold bg-red-500 text-white hover:bg-red-600 transition-colors">
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

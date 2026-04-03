@@ -11,6 +11,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [showReset, setShowReset] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
@@ -140,10 +141,43 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <p className="text-center mt-6 text-sm text-on-surface-variant">
+          {!isSignUp && !showReset && (
+            <div className="text-center mt-4">
+              <button
+                onClick={() => setShowReset(true)}
+                className="text-xs font-bold text-on-surface-variant hover:text-primary transition-colors"
+              >
+                Forgot Password?
+              </button>
+            </div>
+          )}
+
+          {showReset && (
+            <div className="mt-4 p-4 bg-surface-container rounded-xl">
+              <p className="text-xs font-bold text-on-surface-variant mb-2">Enter your email to reset password:</p>
+              <form onSubmit={async (e) => {
+                e.preventDefault();
+                if (!email) return;
+                setLoading(true);
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                  redirectTo: `${window.location.origin}/auth/callback`,
+                });
+                if (error) setError(error.message);
+                else setMessage("Password reset link sent to your email!");
+                setShowReset(false);
+                setLoading(false);
+              }}>
+                <button type="submit" disabled={!email || loading} className="w-full py-2 rounded-lg font-bold text-sm bg-primary text-on-primary disabled:opacity-50">
+                  Send Reset Link
+                </button>
+              </form>
+            </div>
+          )}
+
+          <p className="text-center mt-4 text-sm text-on-surface-variant">
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button
-              onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null); }}
+              onClick={() => { setIsSignUp(!isSignUp); setError(null); setMessage(null); setShowReset(false); }}
               className="font-bold text-primary hover:underline"
             >
               {isSignUp ? "Sign In" : "Sign Up"}

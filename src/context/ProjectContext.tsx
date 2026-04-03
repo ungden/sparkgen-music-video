@@ -96,8 +96,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       const dbUpdates: Record<string, unknown> = {};
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
+      if (updates.genre !== undefined) dbUpdates.genre = updates.genre;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.selectedTheme !== undefined) dbUpdates.selected_theme = updates.selectedTheme;
+      if (updates.characterPrompt !== undefined) dbUpdates.character_prompt = updates.characterPrompt;
+      if (updates.artStyle !== undefined) dbUpdates.art_style = updates.artStyle;
       if (updates.customPrompt !== undefined) dbUpdates.custom_prompt = updates.customPrompt;
       if (updates.lyrics !== undefined) dbUpdates.lyrics = updates.lyrics;
       if (updates.music !== undefined) dbUpdates.music = updates.music;
@@ -121,10 +124,11 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             time_range: s.time,
             lyrics: s.lyrics,
             description: s.description,
-            image_url: s.imageBase64 ? `base64:${s.imageBase64.substring(0, 100)}` : null, // Don't store full base64 in DB
+            image_url: s.imageUrl || (s.imageBase64 ? `data:image/png;base64,${s.imageBase64}` : null),
             status: s.status,
             video_status: s.videoStatus || "idle",
             video_file_name: s.videoFileName || null,
+            video_url: s.videoUrl || null,
             video_error: s.videoError || null,
           }));
           await supabase.from("scenes").insert(rows);
@@ -216,25 +220,34 @@ function mapDbProject(row: Record<string, unknown>): Project {
     id: row.id as string,
     title: row.title as string,
     description: (row.description as string) || "",
+    genre: (row.genre as string) || undefined,
     status: row.status as Project["status"],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     selectedTheme: row.selected_theme as Project["selectedTheme"],
     customPrompt: row.custom_prompt as string | undefined,
+    characterPrompt: row.character_prompt as string | undefined,
+    artStyle: row.art_style as string | undefined,
     lyrics: row.lyrics as Project["lyrics"],
     music: row.music as Project["music"],
     scenes: scenes
       .sort((a, b) => (a.scene_number as number) - (b.scene_number as number))
-      .map((s) => ({
-        id: s.scene_number as number,
-        title: s.title as string,
-        time: s.time_range as string,
-        lyrics: (s.lyrics as string) || "",
-        description: (s.description as string) || "",
-        status: s.status as "pending" | "generating" | "done" | "error",
-        videoStatus: (s.video_status as "idle" | "generating" | "done" | "error") || undefined,
-        videoFileName: (s.video_file_name as string) || undefined,
-        videoError: (s.video_error as string) || undefined,
-      })),
+      .map((s) => {
+        const imgUrl = s.image_url as string | null;
+        return {
+          id: s.scene_number as number,
+          title: s.title as string,
+          time: s.time_range as string,
+          lyrics: (s.lyrics as string) || "",
+          description: (s.description as string) || "",
+          imageBase64: imgUrl?.startsWith("data:") ? imgUrl.split(",")[1] : undefined,
+          imageUrl: imgUrl && !imgUrl.startsWith("data:") ? imgUrl : undefined,
+          status: s.status as "pending" | "generating" | "done" | "error",
+          videoStatus: (s.video_status as "idle" | "generating" | "done" | "error") || undefined,
+          videoFileName: (s.video_file_name as string) || undefined,
+          videoUrl: (s.video_url as string) || undefined,
+          videoError: (s.video_error as string) || undefined,
+        };
+      }),
   };
 }

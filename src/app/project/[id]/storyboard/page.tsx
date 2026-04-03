@@ -53,7 +53,12 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
 
       const data = await res.json();
       setScenes(data.scenes);
-      updateProject(id, { scenes: data.scenes, status: "storyboard" });
+      updateProject(id, {
+        scenes: data.scenes,
+        status: "storyboard",
+        characterPrompt: data.characterPrompt,
+        artStyle: data.artStyle,
+      });
 
       // Generate images for each scene
       for (let i = 0; i < data.scenes.length; i++) {
@@ -78,7 +83,12 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
       const res = await fetch("/api/generate-image", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: scene.description, genreSlug: currentProject?.genre }),
+        body: JSON.stringify({
+              description: scene.description,
+              style: currentProject?.artStyle,
+              genreSlug: currentProject?.genre,
+              characterReferenceBase64: currentProject?.characterReferenceBase64,
+            }),
       });
 
       if (!res.ok) {
@@ -127,7 +137,7 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
     <>
       <Sidebar />
       <TopNav projectId={id} />
-      <main className="ml-64 pt-20 pb-28 px-6 min-h-screen">
+      <main className="ml-0 md:ml-64 pt-20 pb-28 px-4 md:px-6 min-h-screen">
         {/* Header & Progress */}
         <section className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>

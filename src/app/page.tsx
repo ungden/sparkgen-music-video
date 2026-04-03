@@ -36,10 +36,10 @@ const features = [
 ];
 
 const stats = [
-  { value: "30s", label: "Average generation time" },
+  { value: "~5 min", label: "Full video creation" },
   { value: "~$3", label: "Per video (budget mode)" },
-  { value: "720p-4K", label: "Output resolution" },
-  { value: "5+", label: "Scenes per video" },
+  { value: "11", label: "Music genres supported" },
+  { value: "8+", label: "Scenes per video" },
 ];
 
 export default function LandingPage() {

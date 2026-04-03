@@ -37,7 +37,7 @@ export default function Sidebar() {
   const displayName = user?.user_metadata?.full_name || user?.email?.split("@")[0] || "User";
 
   return (
-    <aside className="fixed left-0 top-0 bottom-0 z-40 flex flex-col py-8 h-screen w-64 rounded-r-[3rem] overflow-hidden bg-blue-50 shadow-xl shadow-blue-900/5">
+    <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 flex-col py-8 h-screen w-64 rounded-r-[3rem] overflow-hidden bg-blue-50 shadow-xl shadow-blue-900/5">
       <div className="px-8 mb-10">
         <h1 className="text-xl font-black text-blue-700 tracking-tight">
           SparkGen AI

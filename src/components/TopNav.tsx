@@ -36,7 +36,7 @@ export default function TopNav({ projectId }: { projectId?: string }) {
 
   return (
     <>
-      <header className="fixed top-0 right-0 left-64 h-20 flex justify-between items-center px-8 z-30 bg-white/80 backdrop-blur-xl shadow-sm">
+      <header className="fixed top-0 right-0 left-0 md:left-64 h-20 flex justify-between items-center px-4 md:px-8 z-30 bg-white/80 backdrop-blur-xl shadow-sm">
         <div className="flex items-center gap-8">
           <Link href="/" className="text-2xl font-black text-blue-600 tracking-tight">
             Magic Music Video Maker

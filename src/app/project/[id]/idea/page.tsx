@@ -158,7 +158,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
     <>
       <Sidebar />
       <TopNav projectId={id} />
-      <main className="ml-64 mt-20 p-8 min-h-[calc(100vh-5rem)]">
+      <main className="ml-0 md:ml-64 mt-20 p-4 md:p-8 min-h-[calc(100vh-5rem)]">
         {/* Progress Stepper */}
         {(() => {
           const statusStep: Record<string, number> = { idea: 1, storyboard: 2, animation: 3, editing: 4, rendering: 4, finished: 4 };

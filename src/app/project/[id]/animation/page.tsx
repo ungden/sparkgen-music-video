@@ -75,7 +75,7 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
       }
 
       const data = await res.json();
-      updateScene({ videoStatus: "done", videoFileName: data.videoFileName });
+      updateScene({ videoStatus: "done", videoFileName: data.videoFileName, videoUrl: data.videoUrl });
     } catch (e: unknown) {
       updateScene({
         videoStatus: "error",
@@ -172,7 +172,7 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
     <>
       <Sidebar />
       <TopNav projectId={id} />
-      <main className="ml-64 pt-20 pb-8 px-6 min-h-screen">
+      <main className="ml-0 md:ml-64 pt-20 pb-8 px-4 md:px-6 min-h-screen">
         {/* Header */}
         <section className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-6">
           <div>
