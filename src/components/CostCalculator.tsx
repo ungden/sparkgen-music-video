@@ -206,7 +206,7 @@ export default function CostCalculator({
                 { value: "imagen-4-fast", label: `Imagen Fast ($0.02)` },
                 { value: "imagen-4-standard", label: `Imagen Std ($0.04)` },
                 { value: "imagen-4-ultra", label: `Imagen Ultra ($0.06)` },
-                { value: "gemini-2.0-flash-image", label: `Gemini Flash (~$0.04)` },
+                { value: "gemini-3.1-flash-image-preview", label: `Gemini Flash (~$0.04)` },
               ]}
               onChange={(v) => update({ imageModel: v })}
             />
