@@ -59,8 +59,8 @@ export default function Dashboard() {
   const [editTitle, setEditTitle] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  const handleNewProject = () => {
-    const id = createProject();
+  const handleNewProject = async () => {
+    const id = await createProject();
     router.push(`/project/${id}/idea`);
   };
 
