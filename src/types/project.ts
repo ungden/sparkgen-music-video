@@ -51,11 +51,14 @@ export interface CharacterLibraryItem {
   createdAt: string;
 }
 
+export type VideoProvider = "veo" | "p-video";
+
 export interface Project {
   id: string;
   title: string;
   description: string;
   genre?: string;
+  videoProvider?: VideoProvider;
   status: "idea" | "storyboard" | "animation" | "editing" | "rendering" | "finished";
   createdAt: string;
   updatedAt: string;

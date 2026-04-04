@@ -4,7 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import CostCalculator from "@/components/CostCalculator";
 import { useProject } from "@/context/ProjectContext";
-import { Scene } from "@/types/project";
+import { Scene, VideoProvider } from "@/types/project";
 import { buildVideoPrompt } from "@/lib/prompts";
 import { getGenre } from "@/lib/genres";
 import Link from "next/link";
@@ -20,6 +20,8 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
   const [musicStatus, setMusicStatus] = useState<"idle" | "generating" | "done" | "error">("idle");
   const [musicError, setMusicError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [videoProvider, setVideoProvider] = useState<VideoProvider>("veo");
+  const [draftMode, setDraftMode] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   // Keep ref in sync for use in async functions
@@ -35,6 +37,9 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
     }
     if (currentProject?.music?.status === "done" && musicStatus === "idle") {
       setMusicStatus("done");
+    }
+    if (currentProject?.videoProvider) {
+      setVideoProvider(currentProject.videoProvider);
     }
   }, [currentProject]);
 
@@ -64,8 +69,11 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           imageBase64: scene.imageBase64,
+          imageUrl: scene.imageUrl,
           prompt: buildVideoPrompt(scene.description, currentProject?.genre),
-          duration: "6",
+          duration: videoProvider === "p-video" ? 5 : 6,
+          provider: videoProvider,
+          draft: videoProvider === "p-video" ? draftMode : undefined,
         }),
       });
 
@@ -220,6 +228,59 @@ export default function AnimationPage({ params }: { params: Promise<{ id: string
               </button>
             )}
           </div>
+        </section>
+
+        {/* Video Provider Selector */}
+        <section className="mb-6 bg-surface-container-lowest rounded-2xl p-6 shadow-sm">
+          <h3 className="text-sm font-black text-on-surface mb-3 flex items-center gap-2">
+            <span className="material-symbols-outlined text-primary text-lg">videocam</span>
+            Video Generation Model
+          </h3>
+          <div className="flex flex-wrap gap-3 items-center">
+            <button
+              onClick={() => { setVideoProvider("veo"); updateProject(id, { videoProvider: "veo" }); }}
+              disabled={isGeneratingAll}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
+                videoProvider === "veo"
+                  ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+                  : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">cloud</span>
+              Veo 3.1 Lite
+              <span className="text-[10px] opacity-70">$0.05/s</span>
+            </button>
+            <button
+              onClick={() => { setVideoProvider("p-video"); updateProject(id, { videoProvider: "p-video" }); }}
+              disabled={isGeneratingAll}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-full text-sm font-bold transition-all ${
+                videoProvider === "p-video"
+                  ? "bg-primary text-on-primary shadow-lg shadow-primary/20"
+                  : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"
+              }`}
+            >
+              <span className="material-symbols-outlined text-base">bolt</span>
+              P-Video (Fast)
+              <span className="text-[10px] opacity-70">{draftMode ? "$0.005/s" : "$0.02/s"}</span>
+            </button>
+            {videoProvider === "p-video" && (
+              <label className="flex items-center gap-2 ml-2 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={draftMode}
+                  onChange={(e) => setDraftMode(e.target.checked)}
+                  className="w-4 h-4 rounded accent-primary"
+                />
+                <span className="text-sm font-bold text-on-surface-variant">Draft mode</span>
+                <span className="text-[10px] text-tertiary font-bold">(4x faster, preview quality)</span>
+              </label>
+            )}
+          </div>
+          {videoProvider === "p-video" && (
+            <p className="text-xs text-on-surface-variant mt-2">
+              P-Video generates ~10s per clip. {draftMode ? "Draft: ~2.5s per clip, lower quality." : "Full quality, 720p."}
+            </p>
+          )}
         </section>
 
         {/* Error Banner */}

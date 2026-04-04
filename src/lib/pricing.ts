@@ -45,6 +45,12 @@ export const PRICING = {
     },
   } as Record<string, Record<string, Record<string, number>>>,
 
+  // --- P-Video (Replicate) ---
+  "p-video": {
+    draft: { "720p": 0.005, "1080p": 0.01 },
+    full:  { "720p": 0.02,  "1080p": 0.04 },
+  } as Record<string, Record<string, number>>,
+
   // --- Music Generation (Lyria) ---
   lyria: {
     "clip": { label: "Lyria 3 Clip (~30s)", perSong: 0.04 },
@@ -59,9 +65,11 @@ const AVG_TOKENS = {
   scenesPrompt: { input: 800, output: 1200 },
 };
 
+export type VideoProvider = "veo" | "p-video";
 export type VeoVersion = "3.1-lite" | "3.1" | "3" | "2";
 export type VeoSpeed = "standard" | "fast";
 export type VeoResolution = "720p" | "1080p" | "4k";
+export type PVideoQuality = "draft" | "full";
 export type LyriaTier = "clip" | "pro";
 export type ImageModel = "gemini-3.1-flash-image-preview" | "imagen-4-fast" | "imagen-4-standard" | "imagen-4-ultra";
 
@@ -77,9 +85,11 @@ export interface CostBreakdown {
 export interface CostOptions {
   numScenes: number;
   videoDuration: number; // 4, 6, or 8 seconds
+  videoProvider: VideoProvider;
   veoVersion: VeoVersion;
   veoSpeed: VeoSpeed;
   veoResolution: VeoResolution;
+  pVideoQuality: PVideoQuality;
   lyriaTier: LyriaTier;
   imageModel: ImageModel;
   actualTokens?: {
@@ -91,9 +101,11 @@ export interface CostOptions {
 export const DEFAULT_OPTIONS: CostOptions = {
   numScenes: 8,
   videoDuration: 6,
+  videoProvider: "veo",
   veoVersion: "3.1-lite",
   veoSpeed: "standard",
   veoResolution: "720p",
+  pVideoQuality: "full",
   lyriaTier: "pro",
   imageModel: "gemini-3.1-flash-image-preview",
 };
@@ -115,7 +127,7 @@ export function getImagePrice(model: ImageModel): number {
 }
 
 export function calculateProjectCost(options: CostOptions = DEFAULT_OPTIONS) {
-  const { numScenes, videoDuration, veoVersion, veoSpeed, veoResolution, lyriaTier, imageModel, actualTokens } = options;
+  const { numScenes, videoDuration, videoProvider, veoVersion, veoSpeed, veoResolution, pVideoQuality, lyriaTier, imageModel, actualTokens } = options;
   const items: CostBreakdown[] = [];
 
   if (actualTokens) {
@@ -187,17 +199,31 @@ export function calculateProjectCost(options: CostOptions = DEFAULT_OPTIONS) {
   });
 
   // Step 3: Video Generation
-  const veoPricePerSec = getVeoPrice(veoVersion, veoSpeed, veoResolution);
-  if (veoPricePerSec !== null) {
-    const clipCost = veoPricePerSec * videoDuration;
+  if (videoProvider === "p-video") {
+    const res = veoResolution === "4k" ? "1080p" : veoResolution;
+    const pricePerSec = PRICING["p-video"][pVideoQuality]?.[res] ?? 0.02;
+    const clipCost = pricePerSec * videoDuration;
     items.push({
       step: "Step 3",
-      model: `Veo ${veoVersion} ${veoSpeed} (${veoResolution})`,
+      model: `P-Video ${pVideoQuality} (${res})`,
       description: `Animate scenes (${videoDuration}s each)`,
       quantity: numScenes,
       unitCost: clipCost,
       totalCost: clipCost * numScenes,
     });
+  } else {
+    const veoPricePerSec = getVeoPrice(veoVersion, veoSpeed, veoResolution);
+    if (veoPricePerSec !== null) {
+      const clipCost = veoPricePerSec * videoDuration;
+      items.push({
+        step: "Step 3",
+        model: `Veo ${veoVersion} ${veoSpeed} (${veoResolution})`,
+        description: `Animate scenes (${videoDuration}s each)`,
+        quantity: numScenes,
+        unitCost: clipCost,
+        totalCost: clipCost * numScenes,
+      });
+    }
   }
 
   // Step 3: Music Generation

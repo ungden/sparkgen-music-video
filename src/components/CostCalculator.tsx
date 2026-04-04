@@ -5,9 +5,11 @@ import {
   calculateProjectCost,
   CostOptions,
   DEFAULT_OPTIONS,
+  VideoProvider,
   VeoVersion,
   VeoSpeed,
   VeoResolution,
+  PVideoQuality,
   LyriaTier,
   ImageModel,
   getVeoPrice,
@@ -110,7 +112,7 @@ export default function CostCalculator({
           <span className="text-white/60 text-sm font-bold">USD</span>
         </div>
         <p className="text-white/70 text-xs mt-1">
-          {opts.numScenes} scenes x {opts.videoDuration}s = {totalVideoDuration}s total &bull; {opts.veoResolution} &bull; Veo {opts.veoVersion} {opts.veoSpeed}
+          {opts.numScenes} scenes x {opts.videoDuration}s = {totalVideoDuration}s total &bull; {opts.veoResolution} &bull; {opts.videoProvider === "p-video" ? `P-Video ${opts.pVideoQuality}` : `Veo ${opts.veoVersion} ${opts.veoSpeed}`}
         </p>
       </div>
 
@@ -122,6 +124,17 @@ export default function CostCalculator({
               <span className="material-symbols-outlined text-sm text-primary">movie</span>
               Video Options
             </h4>
+
+            {/* Provider Toggle */}
+            <OptionChips<VideoProvider>
+              label="Video Provider"
+              value={opts.videoProvider}
+              options={[
+                { value: "veo", label: "Veo (Google)" },
+                { value: "p-video", label: "P-Video (Fast)" },
+              ]}
+              onChange={(v) => update({ videoProvider: v })}
+            />
 
             {/* Scenes + Duration */}
             <div className="grid grid-cols-2 gap-3">
@@ -157,40 +170,60 @@ export default function CostCalculator({
               />
             </div>
 
-            {/* Veo Version */}
-            <OptionChips<VeoVersion>
-              label="Veo Model"
-              value={opts.veoVersion}
-              options={[
-                { value: "3.1", label: "Veo 3.1" },
-                { value: "3", label: "Veo 3" },
-                { value: "2", label: "Veo 2" },
-              ]}
-              onChange={(v) => update({ veoVersion: v })}
-            />
-
-            {/* Resolution */}
-            <OptionChips<VeoResolution>
-              label="Resolution"
-              value={opts.veoResolution}
-              options={[
-                { value: "720p", label: "720p" },
-                { value: "1080p", label: "1080p" },
-                { value: "4k", label: "4K", disabled: !is4kAvailable },
-              ]}
-              onChange={(v) => update({ veoResolution: v })}
-            />
-
-            {/* Speed */}
-            <OptionChips<VeoSpeed>
-              label="Speed / Quality"
-              value={opts.veoSpeed}
-              options={[
-                { value: "fast", label: `Fast ($${getVeoPrice(opts.veoVersion, "fast", opts.veoResolution)?.toFixed(2) || "?"}/s)`, disabled: !isFastAvailable },
-                { value: "standard", label: `Standard ($${getVeoPrice(opts.veoVersion, "standard", opts.veoResolution)?.toFixed(2) || "?"}/s)` },
-              ]}
-              onChange={(v) => update({ veoSpeed: v })}
-            />
+            {opts.videoProvider === "p-video" ? (
+              <>
+                <OptionChips<PVideoQuality>
+                  label="Quality"
+                  value={opts.pVideoQuality}
+                  options={[
+                    { value: "draft", label: "Draft ($0.005/s) — 4x faster" },
+                    { value: "full", label: "Full ($0.02/s)" },
+                  ]}
+                  onChange={(v) => update({ pVideoQuality: v })}
+                />
+                <OptionChips<VeoResolution>
+                  label="Resolution"
+                  value={opts.veoResolution === "4k" ? "1080p" : opts.veoResolution}
+                  options={[
+                    { value: "720p", label: "720p" },
+                    { value: "1080p", label: "1080p" },
+                  ]}
+                  onChange={(v) => update({ veoResolution: v })}
+                />
+              </>
+            ) : (
+              <>
+                <OptionChips<VeoVersion>
+                  label="Veo Model"
+                  value={opts.veoVersion}
+                  options={[
+                    { value: "3.1", label: "Veo 3.1" },
+                    { value: "3", label: "Veo 3" },
+                    { value: "2", label: "Veo 2" },
+                  ]}
+                  onChange={(v) => update({ veoVersion: v })}
+                />
+                <OptionChips<VeoResolution>
+                  label="Resolution"
+                  value={opts.veoResolution}
+                  options={[
+                    { value: "720p", label: "720p" },
+                    { value: "1080p", label: "1080p" },
+                    { value: "4k", label: "4K", disabled: !is4kAvailable },
+                  ]}
+                  onChange={(v) => update({ veoResolution: v })}
+                />
+                <OptionChips<VeoSpeed>
+                  label="Speed / Quality"
+                  value={opts.veoSpeed}
+                  options={[
+                    { value: "fast", label: `Fast ($${getVeoPrice(opts.veoVersion, "fast", opts.veoResolution)?.toFixed(2) || "?"}/s)`, disabled: !isFastAvailable },
+                    { value: "standard", label: `Standard ($${getVeoPrice(opts.veoVersion, "standard", opts.veoResolution)?.toFixed(2) || "?"}/s)` },
+                  ]}
+                  onChange={(v) => update({ veoSpeed: v })}
+                />
+              </>
+            )}
           </div>
 
           {/* === IMAGE OPTIONS === */}
@@ -267,7 +300,7 @@ export default function CostCalculator({
               <span className="text-2xl font-black text-primary">${totalCost.toFixed(2)}</span>
             </div>
             <p className="text-[10px] text-on-surface-variant mt-1">
-              = {totalVideoDuration}s video @ {opts.veoResolution} &bull; {opts.numScenes} AI images &bull; {opts.lyriaTier === "pro" ? "~2min" : "~30s"} soundtrack
+              = {totalVideoDuration}s video @ {opts.veoResolution} &bull; {opts.videoProvider === "p-video" ? "P-Video" : `Veo ${opts.veoVersion}`} &bull; {opts.numScenes} images &bull; {opts.lyriaTier === "pro" ? "~2min" : "~30s"} soundtrack
             </p>
           </div>
 
@@ -313,9 +346,10 @@ export default function CostCalculator({
             </p>
             <div className="space-y-2 text-xs">
               {[
-                { label: "Budget (5 scenes, 4s, 720p Fast)", opts: { numScenes: 5, videoDuration: 4, veoVersion: "3.1" as VeoVersion, veoSpeed: "fast" as VeoSpeed, veoResolution: "720p" as VeoResolution, lyriaTier: "clip" as LyriaTier, imageModel: "imagen-4-fast" as ImageModel } },
-                { label: "Standard (5 scenes, 6s, 1080p Std)", opts: { numScenes: 5, videoDuration: 6, veoVersion: "3.1" as VeoVersion, veoSpeed: "standard" as VeoSpeed, veoResolution: "1080p" as VeoResolution, lyriaTier: "clip" as LyriaTier, imageModel: "imagen-4-standard" as ImageModel } },
-                { label: "Premium (8 scenes, 8s, 4K Std, Pro)", opts: { numScenes: 8, videoDuration: 8, veoVersion: "3.1" as VeoVersion, veoSpeed: "standard" as VeoSpeed, veoResolution: "4k" as VeoResolution, lyriaTier: "pro" as LyriaTier, imageModel: "imagen-4-ultra" as ImageModel } },
+                { label: "P-Video Draft (8 scenes, 5s)", opts: { ...DEFAULT_OPTIONS, numScenes: 8, videoDuration: 5, videoProvider: "p-video" as VideoProvider, pVideoQuality: "draft" as PVideoQuality, veoResolution: "720p" as VeoResolution, lyriaTier: "pro" as LyriaTier, imageModel: "gemini-3.1-flash-image-preview" as ImageModel } },
+                { label: "P-Video Full (8 scenes, 5s)", opts: { ...DEFAULT_OPTIONS, numScenes: 8, videoDuration: 5, videoProvider: "p-video" as VideoProvider, pVideoQuality: "full" as PVideoQuality, veoResolution: "720p" as VeoResolution, lyriaTier: "pro" as LyriaTier, imageModel: "gemini-3.1-flash-image-preview" as ImageModel } },
+                { label: "Veo 3.1 Lite (8 scenes, 6s)", opts: { ...DEFAULT_OPTIONS, numScenes: 8, videoDuration: 6, videoProvider: "veo" as VideoProvider, veoVersion: "3.1-lite" as VeoVersion, veoSpeed: "standard" as VeoSpeed, veoResolution: "720p" as VeoResolution, lyriaTier: "pro" as LyriaTier, imageModel: "gemini-3.1-flash-image-preview" as ImageModel } },
+                { label: "Veo 3.1 Premium (8 scenes, 8s, 4K)", opts: { ...DEFAULT_OPTIONS, numScenes: 8, videoDuration: 8, videoProvider: "veo" as VideoProvider, veoVersion: "3.1" as VeoVersion, veoSpeed: "standard" as VeoSpeed, veoResolution: "4k" as VeoResolution, lyriaTier: "pro" as LyriaTier, imageModel: "imagen-4-ultra" as ImageModel } },
               ].map((preset) => {
                 const { totalCost: presetCost } = calculateProjectCost(preset.opts);
                 return (

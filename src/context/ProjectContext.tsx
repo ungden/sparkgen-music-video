@@ -97,6 +97,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
       if (updates.title !== undefined) dbUpdates.title = updates.title;
       if (updates.description !== undefined) dbUpdates.description = updates.description;
       if (updates.genre !== undefined) dbUpdates.genre = updates.genre;
+      if (updates.videoProvider !== undefined) dbUpdates.video_provider = updates.videoProvider;
       if (updates.status !== undefined) dbUpdates.status = updates.status;
       if (updates.selectedTheme !== undefined) dbUpdates.selected_theme = updates.selectedTheme;
       if (updates.characterPrompt !== undefined) dbUpdates.character_prompt = updates.characterPrompt;
@@ -221,6 +222,7 @@ function mapDbProject(row: Record<string, unknown>): Project {
     title: row.title as string,
     description: (row.description as string) || "",
     genre: (row.genre as string) || undefined,
+    videoProvider: (row.video_provider as Project["videoProvider"]) || undefined,
     status: row.status as Project["status"],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
