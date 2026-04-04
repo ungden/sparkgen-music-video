@@ -72,9 +72,6 @@ export default function LandingPage() {
             <span className="text-xl font-black text-blue-600 tracking-tight">SparkGen AI</span>
           </div>
           <div className="flex items-center gap-3">
-            <Link href="/film" className="px-5 py-2 font-bold text-sm text-violet-600 hover:text-violet-800 transition-colors hidden sm:block">
-              Film Studio
-            </Link>
             <Link href="/login" className="px-5 py-2 font-bold text-sm text-on-surface-variant hover:text-primary transition-colors hidden sm:block">
               Sign In
             </Link>
@@ -106,8 +103,8 @@ export default function LandingPage() {
           </h1>
 
           <p className="text-lg text-on-surface-variant max-w-2xl mx-auto mb-8 leading-relaxed">
-            Choose a genre, describe your vision. AI writes lyrics, creates visuals,
-            animates scenes, composes music, and renders a complete video &mdash; in minutes.
+            Music videos or animated short films. AI writes lyrics &amp; scripts, creates visuals,
+            animates scenes, composes music, adds narration &mdash; all in minutes.
           </p>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
@@ -211,40 +208,6 @@ export default function LandingPage() {
                 <p className="text-sm text-on-surface-variant">{model.desc}</p>
               </div>
             ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Film Studio Promo */}
-      <section className="py-20 px-4 md:px-6">
-        <div className="max-w-5xl mx-auto">
-          <div className="bg-gradient-to-br from-violet-600 to-purple-700 rounded-3xl p-8 md:p-12 text-white relative overflow-hidden">
-            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full blur-3xl" />
-            <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-              <div className="flex-1">
-                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/10 rounded-full mb-4">
-                  <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                  <span className="text-xs font-bold uppercase tracking-wider">New Feature</span>
-                </div>
-                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">Animated Short Films</h2>
-                <p className="text-violet-100 text-lg leading-relaxed mb-6">
-                  Create AI-powered animated short films with narration. Pick a style, AI writes the script,
-                  generates visuals, animates scenes, and adds voice narration &mdash; all automatically.
-                </p>
-                <div className="flex flex-wrap gap-3 mb-6">
-                  {["Adventure", "Fairy Tale", "Sci-Fi", "Comedy", "Mystery", "Documentary"].map((s) => (
-                    <span key={s} className="px-3 py-1 bg-white/10 rounded-full text-sm font-bold">{s}</span>
-                  ))}
-                </div>
-                <Link href="/film" className="inline-flex items-center gap-3 px-8 py-4 bg-white text-violet-700 font-black text-lg rounded-full hover:scale-105 transition-all active:scale-95 shadow-xl">
-                  <span className="material-symbols-outlined filled">movie_filter</span>
-                  Try Film Studio
-                </Link>
-              </div>
-              <div className="flex-shrink-0 w-48 h-48 md:w-56 md:h-56 rounded-3xl bg-white/10 flex items-center justify-center">
-                <span className="material-symbols-outlined text-8xl text-white/40">movie_filter</span>
-              </div>
-            </div>
           </div>
         </div>
       </section>

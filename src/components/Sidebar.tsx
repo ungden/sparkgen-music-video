@@ -9,7 +9,6 @@ import type { User } from "@supabase/supabase-js";
 const navItems = [
   { icon: "home", label: "Home", href: "/dashboard", disabled: false },
   { icon: "movie_filter", label: "Projects", href: "/dashboard", disabled: false },
-  { icon: "theaters", label: "Film Studio", href: "/film", disabled: false },
   { icon: "settings", label: "Settings", href: "#", disabled: true },
 ];
 
