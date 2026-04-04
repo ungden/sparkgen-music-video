@@ -57,8 +57,9 @@ function getSubtext(p: AnyProject): string {
 }
 
 export default function Dashboard() {
-  const { projects: musicProjects, createProject: createMusicProject, deleteProject: deleteMusicProject, updateProject: updateMusicProject } = useProject();
-  const { projects: filmProjects, createProject: createFilmProject, deleteProject: deleteFilmProject, updateProject: updateFilmProject } = useFilm();
+  const { projects: musicProjects, createProject: createMusicProject, deleteProject: deleteMusicProject, updateProject: updateMusicProject, loading: musicLoading } = useProject();
+  const { projects: filmProjects, createProject: createFilmProject, deleteProject: deleteFilmProject, updateProject: updateFilmProject, loading: filmLoading } = useFilm();
+  const isLoading = musicLoading || filmLoading;
   const router = useRouter();
   const [showNewModal, setShowNewModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -128,7 +129,19 @@ export default function Dashboard() {
             ))}
           </div>
 
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="bg-surface-container-lowest rounded-2xl p-5 animate-pulse">
+                  <div className="flex justify-between mb-3"><div className="h-5 w-20 bg-surface-container-high rounded-full" /><div className="h-3 w-16 bg-surface-container-high rounded" /></div>
+                  <div className="h-36 rounded-xl bg-surface-container-high mb-3" />
+                  <div className="h-5 w-2/3 bg-surface-container-high rounded mb-2" />
+                  <div className="h-3 w-1/3 bg-surface-container-high rounded mb-3" />
+                  <div className="h-10 bg-surface-container-high rounded-full" />
+                </div>
+              ))}
+            </section>
+          ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-16 text-center">
               <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-6">
                 <span className="material-symbols-outlined text-5xl text-on-surface-variant opacity-50">movie_filter</span>
