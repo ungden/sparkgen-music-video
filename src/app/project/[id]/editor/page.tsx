@@ -75,10 +75,32 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
         }),
       });
 
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({ error: "Render failed" }));
-        throw new Error(err.error || "Failed to render video");
+      const contentType = res.headers.get("content-type") || "";
+
+      // Handle fallback (no FFmpeg on server)
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.fallback) {
+          setRenderProgress("Downloading individual clips...");
+          for (const clip of data.clips || []) {
+            const a = document.createElement("a");
+            a.href = clip.videoUrl;
+            a.download = `scene-${clip.id}.mp4`;
+            a.target = "_blank";
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+          }
+          updateProject(id, { status: "finished" });
+          showToast(`Downloaded ${data.clips?.length || 0} clips. Combine them with a video editor.`);
+          setIsRendering(false);
+          setRenderProgress("");
+          return;
+        }
+        if (data.error) throw new Error(data.error);
       }
+
+      if (!res.ok) throw new Error("Failed to render video");
 
       setRenderProgress("Downloading final video...");
       const blob = await res.blob();

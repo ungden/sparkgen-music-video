@@ -42,7 +42,23 @@ export default function FilmEditorPage({ params }: { params: Promise<{ id: strin
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ scenes: renderScenes, bgmAudioBase64: currentProject?.music?.audioBase64, bgmMimeType: currentProject?.music?.mimeType, bgmVolume: 0.25 }),
       });
-      if (!res.ok) throw new Error((await res.json().catch(() => ({}))).error || "Render failed");
+      const contentType = res.headers.get("content-type") || "";
+      if (contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data.fallback) {
+          setRenderProgress("Downloading clips...");
+          for (const clip of data.clips || []) {
+            const a = document.createElement("a");
+            a.href = clip.videoUrl; a.download = `scene-${clip.id}.mp4`; a.target = "_blank";
+            document.body.appendChild(a); a.click(); document.body.removeChild(a);
+          }
+          updateProject(id, { status: "finished" });
+          showToast(`Downloaded ${data.clips?.length || 0} clips individually.`);
+          setIsRendering(false); setRenderProgress(""); return;
+        }
+        if (data.error) throw new Error(data.error);
+      }
+      if (!res.ok) throw new Error("Render failed");
 
       setRenderProgress("Downloading...");
       const blob = await res.blob();

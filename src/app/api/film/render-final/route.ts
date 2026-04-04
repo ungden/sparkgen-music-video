@@ -1,12 +1,27 @@
 import { renderFilmVideo } from "@/lib/film/render";
 import { NextRequest, NextResponse } from "next/server";
+import { execSync } from "node:child_process";
 
 export const runtime = "nodejs";
 export const maxDuration = 300;
 
+function hasFFmpeg(): boolean {
+  try { execSync("ffmpeg -version", { stdio: "ignore" }); return true; } catch { return false; }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
+
+    if (!hasFFmpeg()) {
+      const scenes = (body.scenes || []).filter((s: { videoUrl?: string }) => s.videoUrl);
+      return NextResponse.json({
+        fallback: true,
+        message: "FFmpeg not available. Download individual clips instead.",
+        clips: scenes.map((s: { id: number; videoUrl: string }) => ({ id: s.id, videoUrl: s.videoUrl })),
+      });
+    }
+
     const outputBuffer = await renderFilmVideo({
       scenes: body.scenes || [],
       bgmAudioBase64: body.bgmAudioBase64,

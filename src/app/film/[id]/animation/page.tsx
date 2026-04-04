@@ -213,8 +213,10 @@ export default function FilmAnimationPage({ params }: { params: Promise<{ id: st
                 <div className="absolute top-2 left-2 flex gap-1">
                   {scene.videoStatus === "done" && <span className="bg-green-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Video</span>}
                   {scene.videoStatus === "generating" && <span className="bg-amber-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">Video...</span>}
+                  {scene.videoStatus === "error" && <button onClick={() => generateVideoForScene(scene.id - 1)} className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold hover:bg-red-600">Retry Video</button>}
                   {scene.narrationStatus === "done" && <span className="bg-violet-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold">Voice</span>}
                   {scene.narrationStatus === "generating" && <span className="bg-violet-400 text-white text-[10px] px-2 py-0.5 rounded-full font-bold animate-pulse">Voice...</span>}
+                  {scene.narrationStatus === "error" && <button onClick={() => generateNarrationForScene(scene.id - 1)} className="bg-red-500 text-white text-[10px] px-2 py-0.5 rounded-full font-bold hover:bg-red-600">Retry Voice</button>}
                 </div>
               </div>
               <div className="p-4">

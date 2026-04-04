@@ -10,8 +10,20 @@ const plusJakartaSans = Plus_Jakarta_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "SparkGen AI - Magic Music Video Maker",
-  description: "AI-powered music video maker — generate lyrics, visuals, animations, and soundtracks for any genre",
+  title: "SparkGen AI - AI Music Video & Animated Film Maker",
+  description: "Create AI-powered music videos and animated short films. Generate lyrics, scripts, illustrations, animations, soundtracks, and narration — for any genre or style.",
+  keywords: ["AI music video", "music video maker", "animated short film", "AI video generator", "Gemini", "Veo", "Lyria"],
+  openGraph: {
+    title: "SparkGen AI - AI Music Video & Film Maker",
+    description: "Turn any idea into a music video or animated short film with AI. 11 music genres, 6 film styles, full pipeline from idea to final render.",
+    type: "website",
+    siteName: "SparkGen AI",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SparkGen AI - AI Music Video & Film Maker",
+    description: "Create AI-powered music videos and animated short films. From idea to finished video in minutes.",
+  },
 };
 
 export default function RootLayout({

@@ -9,8 +9,7 @@ import type { User } from "@supabase/supabase-js";
 const navItems = [
   { icon: "home", label: "Home", href: "/dashboard", disabled: false },
   { icon: "movie_filter", label: "Projects", href: "/dashboard", disabled: false },
-  { icon: "auto_awesome", label: "Assets", href: "#", disabled: true },
-  { icon: "folder_open", label: "Library", href: "#", disabled: true },
+  { icon: "theaters", label: "Film Studio", href: "/film", disabled: false },
   { icon: "settings", label: "Settings", href: "#", disabled: true },
 ];
 
