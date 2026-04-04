@@ -107,27 +107,47 @@ export default function Dashboard() {
         <TopNav />
         <div className="pt-20">
           {/* Header */}
-          <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-8">
-            <div>
-              <h2 className="text-4xl font-black text-on-surface tracking-tight mb-1">My Studio</h2>
-              <p className="text-on-surface-variant font-medium">
-                {allProjects.length} project{allProjects.length !== 1 ? "s" : ""} &mdash; {musicProjects.length} music video{musicProjects.length !== 1 ? "s" : ""}, {filmProjects.length} film{filmProjects.length !== 1 ? "s" : ""}
-              </p>
-            </div>
-            <button onClick={() => setShowNewModal(true)} className="flex items-center gap-2 bg-primary text-on-primary px-8 py-4 rounded-full font-black text-lg shadow-lg hover:opacity-90 transition-all active:scale-95">
-              <span className="material-symbols-outlined filled">add_circle</span>
-              New Project
-            </button>
+          <header className="mb-8">
+            <h2 className="text-4xl font-black text-on-surface tracking-tight mb-1">My Studio</h2>
+            <p className="text-on-surface-variant font-medium">Create AI-powered videos from idea to final render</p>
           </header>
 
-          {/* Filter Tabs */}
-          <div className="flex gap-2 mb-8">
-            {(["all", "music", "film"] as const).map((f) => (
-              <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${filter === f ? "bg-primary text-on-primary shadow" : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"}`}>
-                {f === "all" ? `All (${allProjects.length})` : f === "music" ? `Music Videos (${musicProjects.length})` : `Films (${filmProjects.length})`}
-              </button>
-            ))}
+          {/* Create New — 2 big cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+            <button onClick={() => handleCreate("music")} className="flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all text-left group">
+              <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
+                <span className="material-symbols-outlined text-white text-2xl filled">music_video</span>
+              </div>
+              <div>
+                <h3 className="font-black text-lg text-on-surface mb-0.5">New Music Video</h3>
+                <p className="text-xs text-on-surface-variant">AI lyrics, illustrations, animation &amp; soundtrack &mdash; 11 genres</p>
+              </div>
+              <span className="material-symbols-outlined text-blue-400 ml-auto text-xl">arrow_forward</span>
+            </button>
+            <button onClick={() => handleCreate("film")} className="flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-r from-violet-50 to-violet-100 border-2 border-violet-200 hover:border-violet-400 hover:shadow-lg transition-all text-left group">
+              <div className="w-14 h-14 rounded-2xl bg-violet-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-violet-500/20">
+                <span className="material-symbols-outlined text-white text-2xl filled">movie</span>
+              </div>
+              <div>
+                <h3 className="font-black text-lg text-on-surface mb-0.5">New Animated Film</h3>
+                <p className="text-xs text-on-surface-variant">AI script, visuals, narration &amp; background music &mdash; 6 styles</p>
+              </div>
+              <span className="material-symbols-outlined text-violet-400 ml-auto text-xl">arrow_forward</span>
+            </button>
           </div>
+
+          {/* Filter Tabs + Project Count */}
+          {allProjects.length > 0 && (
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex gap-2">
+                {(["all", "music", "film"] as const).map((f) => (
+                  <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${filter === f ? "bg-primary text-on-primary shadow" : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"}`}>
+                    {f === "all" ? `All (${allProjects.length})` : f === "music" ? `Music Videos (${musicProjects.length})` : `Films (${filmProjects.length})`}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {isLoading ? (
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -232,14 +252,6 @@ export default function Dashboard() {
                 );
               })}
 
-              {/* New Project Card */}
-              <div onClick={() => setShowNewModal(true)} className="bg-surface-container-low border-3 border-dashed border-outline-variant/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer hover:bg-surface-container-high transition-colors min-h-[280px]">
-                <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mb-3">
-                  <span className="material-symbols-outlined text-2xl text-primary">add</span>
-                </div>
-                <h4 className="text-base font-black text-on-surface">New Project</h4>
-                <p className="text-xs text-on-surface-variant mt-1">Music video or animated film</p>
-              </div>
             </section>
           )}
         </div>
