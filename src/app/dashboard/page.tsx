@@ -142,18 +142,45 @@ export default function Dashboard() {
               ))}
             </section>
           ) : filtered.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-16 text-center">
-              <div className="w-24 h-24 rounded-full bg-surface-container-high flex items-center justify-center mb-6">
-                <span className="material-symbols-outlined text-5xl text-on-surface-variant opacity-50">movie_filter</span>
+            <div className="max-w-3xl mx-auto">
+              {/* Welcome + How It Works */}
+              <div className="text-center mb-12">
+                <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6 mx-auto">
+                  <span className="material-symbols-outlined text-4xl text-primary">auto_awesome</span>
+                </div>
+                <h3 className="text-3xl font-black text-on-surface mb-3">Welcome to SparkGen AI</h3>
+                <p className="text-on-surface-variant text-lg max-w-xl mx-auto">Create AI-powered music videos and animated short films in minutes. Here&apos;s how it works:</p>
               </div>
-              <h3 className="text-2xl font-black text-on-surface mb-2">
-                {filter === "all" ? "No projects yet" : `No ${filter === "music" ? "music video" : "film"} projects`}
-              </h3>
-              <p className="text-on-surface-variant mb-8 max-w-md">Create your first project to get started.</p>
-              <button onClick={() => setShowNewModal(true)} className="flex items-center gap-2 bg-primary text-on-primary px-8 py-4 rounded-full font-black text-lg shadow-lg hover:opacity-90 active:scale-95">
-                <span className="material-symbols-outlined">add</span>
-                Create Project
-              </button>
+
+              {/* Steps Guide */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+                {[
+                  { step: "1", icon: "lightbulb", title: "Pick a Theme", desc: "Choose a genre/style, then select or write your own idea. AI generates lyrics or a script.", color: "bg-blue-100 text-blue-600" },
+                  { step: "2", icon: "image", title: "Storyboard", desc: "AI breaks your song/script into scenes and generates stunning illustrations for each one.", color: "bg-amber-100 text-amber-600" },
+                  { step: "3", icon: "movie", title: "Animate & Add Audio", desc: "AI animates scenes into video clips, generates music (or narration for films).", color: "bg-emerald-100 text-emerald-600" },
+                  { step: "4", icon: "download", title: "Render & Download", desc: "All clips are composited into a final MP4 video you can download and share.", color: "bg-rose-100 text-rose-600" },
+                ].map((s) => (
+                  <div key={s.step} className="bg-surface-container-lowest rounded-2xl p-6 flex gap-4 items-start shadow-sm">
+                    <div className={`w-12 h-12 rounded-xl ${s.color} flex items-center justify-center shrink-0`}>
+                      <span className="material-symbols-outlined text-xl filled">{s.icon}</span>
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black text-on-surface-variant uppercase tracking-widest mb-1">Step {s.step}</p>
+                      <h4 className="font-black text-on-surface mb-1">{s.title}</h4>
+                      <p className="text-xs text-on-surface-variant leading-relaxed">{s.desc}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Create CTA */}
+              <div className="text-center">
+                <button onClick={() => setShowNewModal(true)} className="inline-flex items-center gap-3 bg-primary text-on-primary px-10 py-5 rounded-full font-black text-lg shadow-xl shadow-primary/20 hover:opacity-90 active:scale-95 transition-all">
+                  <span className="material-symbols-outlined filled text-2xl">add_circle</span>
+                  Create Your First Project
+                </button>
+                <p className="text-xs text-on-surface-variant mt-4">Choose between Music Video or Animated Short Film</p>
+              </div>
             </div>
           ) : (
             <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

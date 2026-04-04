@@ -137,6 +137,17 @@ export default function FilmIdeaPage({ params }: { params: Promise<{ id: string 
       <FilmSidebar />
       <FilmTopNav projectId={id} />
       <main className="ml-0 md:ml-64 mt-20 p-4 md:p-8 min-h-[calc(100vh-5rem)]">
+        {/* Quick Guide */}
+        {!script && !currentProject?.script && (
+          <div className="max-w-4xl mx-auto mb-6 bg-violet-50 border border-violet-100 rounded-2xl p-4 flex items-start gap-3">
+            <span className="material-symbols-outlined text-violet-500 text-xl shrink-0 mt-0.5">help</span>
+            <div className="text-sm text-on-surface-variant">
+              <span className="font-bold text-on-surface">How to start: </span>
+              Choose a film style below, pick a story idea (or write your own), then AI will generate a full script with scenes and narration. Click &quot;Refresh&quot; for AI-generated story ideas.
+            </div>
+          </div>
+        )}
+
         {/* Style Picker */}
         <div className="max-w-4xl mx-auto mb-8">
           <h2 className="text-lg font-bold text-on-surface mb-3">Choose a Film Style</h2>

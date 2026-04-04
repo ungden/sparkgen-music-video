@@ -203,6 +203,17 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
           </div>
         )}
 
+        {/* Quick Guide - show only when no lyrics yet */}
+        {!lyrics && !currentProject?.lyrics && (
+          <div className="max-w-4xl mx-auto mb-6 bg-primary/5 border border-primary/10 rounded-2xl p-4 flex items-start gap-3">
+            <span className="material-symbols-outlined text-primary text-xl shrink-0 mt-0.5">help</span>
+            <div className="text-sm text-on-surface-variant">
+              <span className="font-bold text-on-surface">How to start: </span>
+              Choose a genre below, pick one of the theme cards (or write your own), then AI will generate lyrics. Click &quot;Refresh Ideas&quot; for AI-generated themes. When lyrics are ready, proceed to Storyboard.
+            </div>
+          </div>
+        )}
+
         {/* Genre Picker */}
         <div className="max-w-4xl mx-auto mb-8">
           <h2 className="text-lg font-bold text-on-surface mb-3">Choose a Genre</h2>
