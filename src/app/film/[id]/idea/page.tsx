@@ -5,6 +5,7 @@ import FilmTopNav from "@/components/film/FilmTopNav";
 import { useFilm } from "@/context/FilmContext";
 import { Script } from "@/types/film";
 import { getFilmStyleList, DEFAULT_FILM_STYLE } from "@/lib/film/styles";
+import { getDefaultFilmIdeas } from "@/lib/default-ideas";
 import { useRouter } from "next/navigation";
 import { use, useState, useEffect, useCallback } from "react";
 
@@ -15,7 +16,7 @@ export default function FilmIdeaPage({ params }: { params: Promise<{ id: string 
   const router = useRouter();
   const { currentProject, setCurrentProject, updateProject } = useFilm();
 
-  const [stories, setStories] = useState<StoryIdea[]>([]);
+  const [stories, setStories] = useState<StoryIdea[]>(getDefaultFilmIdeas(DEFAULT_FILM_STYLE));
   const [selectedStory, setSelectedStory] = useState(-1);
   const [customPrompt, setCustomPrompt] = useState("");
   const [script, setScript] = useState<Script | null>(null);
@@ -41,7 +42,7 @@ export default function FilmIdeaPage({ params }: { params: Promise<{ id: string 
   const handleStyleSelect = (slug: typeof selectedStyle) => {
     setSelectedStyle(slug);
     updateProject(id, { filmStyle: slug });
-    setStories([]);
+    setStories(getDefaultFilmIdeas(slug));
     setSelectedStory(-1);
     setScript(null);
     setStreamedText("");
@@ -67,7 +68,7 @@ export default function FilmIdeaPage({ params }: { params: Promise<{ id: string 
   }, [selectedStyle]);
 
   useEffect(() => {
-    if (stories.length === 0 && !script && !currentProject?.script) fetchStories();
+    if (currentProject?.filmStyle && stories.length === 0) setStories(getDefaultFilmIdeas(currentProject.filmStyle));
   }, [stories.length, script, currentProject?.script, fetchStories]);
 
   const generateScript = async (storyTitle: string, prompt?: string) => {

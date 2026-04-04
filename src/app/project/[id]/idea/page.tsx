@@ -6,6 +6,7 @@ import StreamingText, { parseLyrics } from "@/components/StreamingText";
 import { useProject } from "@/context/ProjectContext";
 import { ThemeIdea, Lyrics } from "@/types/project";
 import { getGenreList, DEFAULT_GENRE } from "@/lib/genres";
+import { getDefaultIdeas } from "@/lib/default-ideas";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { use, useState, useEffect, useCallback } from "react";
@@ -15,7 +16,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
   const router = useRouter();
   const { currentProject, setCurrentProject, updateProject } = useProject();
 
-  const [themes, setThemes] = useState<ThemeIdea[]>([]);
+  const [themes, setThemes] = useState<ThemeIdea[]>(getDefaultIdeas(DEFAULT_GENRE));
   const [selectedTheme, setSelectedTheme] = useState<number>(-1);
   const [customPrompt, setCustomPrompt] = useState("");
   const [lyrics, setLyrics] = useState<Lyrics | null>(null);
@@ -48,8 +49,7 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
   const handleGenreSelect = (slug: typeof selectedGenre) => {
     setSelectedGenre(slug);
     updateProject(id, { genre: slug });
-    // Reset themes when genre changes
-    setThemes([]);
+    setThemes(getDefaultIdeas(slug));
     setSelectedTheme(-1);
     setLyrics(null);
     setStreamedText("");
@@ -77,12 +77,12 @@ export default function IdeaPage({ params }: { params: Promise<{ id: string }> }
     }
   }, [selectedGenre]);
 
-  // Auto-fetch themes on first load (only if no saved data)
+  // Restore defaults when project loads with a genre
   useEffect(() => {
-    if (themes.length === 0 && !lyrics && !currentProject?.lyrics) {
-      fetchThemes();
+    if (currentProject?.genre && themes.length === 0) {
+      setThemes(getDefaultIdeas(currentProject.genre));
     }
-  }, [themes.length, lyrics, currentProject?.lyrics, fetchThemes]);
+  }, [currentProject?.genre, themes.length]);
 
   const generateLyrics = async (theme: string, prompt?: string) => {
     setIsStreaming(true);
