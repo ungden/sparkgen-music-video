@@ -160,26 +160,29 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
 
   const setCurrentProject = useCallback(
     (id: string) => {
+      // Validate UUID format to prevent infinite loops from bad IDs
+      if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+        console.error("Invalid project ID:", id);
+        return;
+      }
       setProjects((prev) => {
         const found = prev.find((p) => p.id === id);
         if (found) {
           setCurrentProjectState(found);
         } else {
-          // Fetch from DB if not in state
           supabase
             .from("projects")
             .select("*, scenes(*)")
             .eq("id", id)
             .single()
-            .then(({ data }) => {
-              if (data) {
-                const project = mapDbProject(data);
-                setCurrentProjectState(project);
-                setProjects((p) => {
-                  if (p.find((x) => x.id === id)) return p;
-                  return [project, ...p];
-                });
-              }
+            .then(({ data, error }) => {
+              if (error || !data) return;
+              const project = mapDbProject(data);
+              setCurrentProjectState(project);
+              setProjects((p) => {
+                if (p.find((x) => x.id === id)) return p;
+                return [project, ...p];
+              });
             });
         }
         return prev;

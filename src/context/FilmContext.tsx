@@ -136,18 +136,21 @@ export function FilmProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const setCurrentProject = useCallback((id: string) => {
+    if (!id || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+      console.error("Invalid film project ID:", id);
+      return;
+    }
     setProjects((prev) => {
       const found = prev.find((p) => p.id === id);
       if (found) {
         setCurrentProjectState(found);
       } else {
         supabase.from("film_projects").select("*, film_scenes(*)").eq("id", id).single()
-          .then(({ data }) => {
-            if (data) {
-              const project = mapDbFilmProject(data);
-              setCurrentProjectState(project);
-              setProjects((p) => p.find((x) => x.id === id) ? p : [project, ...p]);
-            }
+          .then(({ data, error }) => {
+            if (error || !data) return;
+            const project = mapDbFilmProject(data);
+            setCurrentProjectState(project);
+            setProjects((p) => p.find((x) => x.id === id) ? p : [project, ...p]);
           });
       }
       return prev;
