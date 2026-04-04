@@ -4,6 +4,7 @@ import FilmSidebar from "@/components/film/FilmSidebar";
 import FilmTopNav from "@/components/film/FilmTopNav";
 import { useFilm } from "@/context/FilmContext";
 import { FilmScene } from "@/types/film";
+import { renderFilmClient, downloadBlob } from "@/lib/client-render";
 import { use, useState, useEffect, useRef } from "react";
 
 export default function FilmEditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -28,49 +29,25 @@ export default function FilmEditorPage({ params }: { params: Promise<{ id: strin
   const handleRender = async () => {
     if (!scenes.length) { showToast("No scenes to render."); return; }
     setIsRendering(true);
-    setRenderProgress("Preparing scenes...");
+    setRenderProgress("Preparing...");
     try {
-      const renderScenes = scenes.filter((s) => s.videoUrl).map((s) => ({
-        id: s.id, videoUrl: s.videoUrl || "", narrationText: s.narrationText,
-        narrationAudioBase64: s.narrationAudioBase64, narrationMimeType: s.narrationMimeType, durationEstimate: s.durationEstimate,
+      const clips = scenes.filter((s) => s.videoUrl).map((s) => ({
+        id: s.id,
+        videoUrl: s.videoUrl || "",
+        narrationBase64: s.narrationAudioBase64,
+        narrationMimeType: s.narrationMimeType,
       }));
-      if (renderScenes.length === 0) { showToast("No videos ready. Generate videos first."); setIsRendering(false); return; }
+      if (clips.length === 0) { showToast("No videos ready."); setIsRendering(false); return; }
 
-      setRenderProgress(`Compositing ${renderScenes.length} scenes + narration...`);
-      const res = await fetch("/api/film/render-final", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ scenes: renderScenes, bgmAudioBase64: currentProject?.music?.audioBase64, bgmMimeType: currentProject?.music?.mimeType, bgmVolume: 0.25 }),
+      const blob = await renderFilmClient({
+        clips,
+        bgmBase64: currentProject?.music?.audioBase64,
+        bgmMimeType: currentProject?.music?.mimeType,
+        bgmVolume: 0.25,
+        onProgress: setRenderProgress,
       });
-      const contentType = res.headers.get("content-type") || "";
-      if (contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data.fallback) {
-          setRenderProgress("Downloading clips...");
-          for (const clip of data.clips || []) {
-            const a = document.createElement("a");
-            a.href = clip.videoUrl; a.download = `scene-${clip.id}.mp4`; a.target = "_blank";
-            document.body.appendChild(a); a.click(); document.body.removeChild(a);
-          }
-          updateProject(id, { status: "finished" });
-          showToast(`Downloaded ${data.clips?.length || 0} clips individually.`);
-          setIsRendering(false); setRenderProgress(""); return;
-        }
-        if (data.error) throw new Error(data.error);
-      }
-      if (!res.ok) throw new Error("Render failed");
 
-      setRenderProgress("Downloading...");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${currentProject?.title || "short-film"}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      downloadBlob(blob, `${currentProject?.title || "short-film"}.mp4`);
       updateProject(id, { status: "finished" });
       showToast("Film rendered and downloaded!");
     } catch (e: unknown) {

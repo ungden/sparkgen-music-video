@@ -4,6 +4,7 @@ import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import { useProject } from "@/context/ProjectContext";
 import { Scene } from "@/types/project";
+import { renderMusicVideo, downloadBlob } from "@/lib/client-render";
 import { use, useState, useEffect, useRef } from "react";
 
 export default function EditorPage({ params }: { params: Promise<{ id: string }> }) {
@@ -45,74 +46,30 @@ export default function EditorPage({ params }: { params: Promise<{ id: string }>
     }
 
     setIsRendering(true);
-    setRenderProgress("Preparing scenes...");
+    setRenderProgress("Preparing...");
 
     try {
-      const renderScenes = scenes
+      const clips = scenes
         .filter((s) => s.videoUrl || s.videoFileName)
         .map((s) => ({
           id: s.id,
           videoUrl: s.videoUrl || s.videoFileName || "",
-          time: s.time,
           lyrics: s.lyrics,
         }));
 
-      if (renderScenes.length === 0) {
+      if (clips.length === 0) {
         showToast("No rendered videos found. Generate videos in the Animation step first.");
         setIsRendering(false);
         return;
       }
 
-      setRenderProgress(`Compositing ${renderScenes.length} scenes + audio...`);
-
-      const res = await fetch("/api/render-final", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          scenes: renderScenes,
-          musicAudioBase64: currentProject?.music?.audioBase64,
-          musicMimeType: currentProject?.music?.mimeType,
-        }),
+      const blob = await renderMusicVideo({
+        clips,
+        musicBase64: currentProject?.music?.audioBase64,
+        musicMimeType: currentProject?.music?.mimeType,
+        onProgress: setRenderProgress,
       });
-
-      const contentType = res.headers.get("content-type") || "";
-
-      // Handle fallback (no FFmpeg on server)
-      if (contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data.fallback) {
-          setRenderProgress("Downloading individual clips...");
-          for (const clip of data.clips || []) {
-            const a = document.createElement("a");
-            a.href = clip.videoUrl;
-            a.download = `scene-${clip.id}.mp4`;
-            a.target = "_blank";
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-          }
-          updateProject(id, { status: "finished" });
-          showToast(`Downloaded ${data.clips?.length || 0} clips. Combine them with a video editor.`);
-          setIsRendering(false);
-          setRenderProgress("");
-          return;
-        }
-        if (data.error) throw new Error(data.error);
-      }
-
-      if (!res.ok) throw new Error("Failed to render video");
-
-      setRenderProgress("Downloading final video...");
-      const blob = await res.blob();
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${currentProject?.title || "music-video"}.mp4`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-
+      downloadBlob(blob, `${currentProject?.title || "music-video"}.mp4`);
       updateProject(id, { status: "finished", renderStatus: "done", renderedAt: new Date().toISOString() });
       showToast("Video rendered and downloaded!");
     } catch (e: unknown) {
