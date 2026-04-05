@@ -71,47 +71,43 @@ export default function StoryboardPage({ params }: { params: Promise<{ id: strin
     }
   }, [currentProject, id, updateProject]);
 
-  const generateImageForScene = async (currentScenes: Scene[], index: number) => {
+  const generateImageForScene = async (currentScenes: Scene[], index: number, retries = 2) => {
     setGeneratingImageIdx(index);
-    const scene = currentScenes[index];
-
     const updated = [...currentScenes];
-    updated[index] = { ...scene, status: "generating" };
-    setScenes(updated);
+    updated[index] = { ...updated[index], status: "generating" };
+    setScenes([...updated]);
 
-    try {
-      const res = await fetch("/api/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-              description: scene.description,
-              style: currentProject?.artStyle,
-              genreSlug: currentProject?.genre,
-              characterReferenceBase64: currentProject?.characterReferenceBase64,
-            }),
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.error || "Failed to generate image");
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch("/api/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            description: currentScenes[index].description,
+            style: currentProject?.artStyle,
+            genreSlug: currentProject?.genre,
+          }),
+        });
+        if (!res.ok) {
+          if (attempt < retries) { await new Promise((r) => setTimeout(r, 3000 * (attempt + 1))); continue; }
+          throw new Error("Failed after retries");
+        }
+        const data = await res.json();
+        updated[index] = { ...updated[index], imageBase64: data.imageBase64, status: "done" };
+        setScenes([...updated]);
+        updateProject(id, { scenes: [...updated] });
+        break;
+      } catch {
+        if (attempt === retries) {
+          updated[index] = { ...updated[index], status: "error" };
+          setScenes([...updated]);
+        } else {
+          await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
+        }
       }
-
-      const data = await res.json();
-      updated[index] = {
-        ...updated[index],
-        imageBase64: data.imageBase64,
-        status: "done",
-      };
-      setScenes([...updated]);
-      updateProject(id, { scenes: [...updated] });
-    } catch {
-      updated[index] = { ...updated[index], status: "error" };
-      setScenes([...updated]);
     }
-
     setGeneratingImageIdx(-1);
-    // Small delay between image generations to respect rate limits
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 3000));
   };
 
   const regenerateImage = async (index: number) => {

@@ -40,25 +40,44 @@ export default function FilmStoryboardPage({ params }: { params: Promise<{ id: s
     finally { setIsGenerating(false); }
   }, [currentProject, id, updateProject]);
 
-  const generateImageForScene = async (currentScenes: FilmScene[], index: number) => {
+  const generateImageForScene = async (currentScenes: FilmScene[], index: number, retries = 2) => {
     setGeneratingImageIdx(index);
     const updated = [...currentScenes];
     updated[index] = { ...updated[index], status: "generating" };
-    setScenes(updated);
-    try {
-      const res = await fetch("/api/film/generate-image", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ description: currentScenes[index].visualDescription, style: currentProject?.artStyle, filmStyleSlug: currentProject?.filmStyle, characterReferenceBase64: currentProject?.characterReferenceBase64 }),
-      });
-      if (!res.ok) throw new Error("Failed");
-      const data = await res.json();
-      updated[index] = { ...updated[index], imageBase64: data.imageBase64, status: "done" };
-      setScenes([...updated]);
-      updateProject(id, { scenes: [...updated] });
-    } catch { updated[index] = { ...updated[index], status: "error" }; setScenes([...updated]); }
+    setScenes([...updated]);
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const res = await fetch("/api/film/generate-image", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ description: currentScenes[index].visualDescription, style: currentProject?.artStyle, filmStyleSlug: currentProject?.filmStyle }),
+        });
+        if (!res.ok) {
+          if (attempt < retries) { await new Promise((r) => setTimeout(r, 3000 * (attempt + 1))); continue; }
+          throw new Error("Failed after retries");
+        }
+        const data = await res.json();
+        updated[index] = { ...updated[index], imageBase64: data.imageBase64, status: "done" };
+        setScenes([...updated]);
+        updateProject(id, { scenes: [...updated] });
+        break;
+      } catch {
+        if (attempt === retries) {
+          updated[index] = { ...updated[index], status: "error" };
+          setScenes([...updated]);
+        } else {
+          await new Promise((r) => setTimeout(r, 3000 * (attempt + 1)));
+        }
+      }
+    }
     setGeneratingImageIdx(-1);
-    await new Promise((r) => setTimeout(r, 1000));
+    await new Promise((r) => setTimeout(r, 3000)); // 3s delay between scenes for rate limit
+  };
+
+  const retryImage = async (index: number) => {
+    await generateImageForScene(scenes, index);
+    updateProject(id, { scenes });
   };
 
   useEffect(() => {
@@ -109,8 +128,20 @@ export default function FilmStoryboardPage({ params }: { params: Promise<{ id: s
                       <div className="absolute inset-0 flex flex-col items-center justify-center gap-3"><span className="material-symbols-outlined text-4xl text-violet-500 animate-spin">progress_activity</span><p className="text-sm font-bold text-on-surface-variant">Generating...</p></div>
                     ) : scene.imageBase64 ? (
                       <img className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" src={`data:image/png;base64,${scene.imageBase64}`} alt={scene.title} />
+                    ) : scene.status === "error" ? (
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-red-50">
+                        <span className="material-symbols-outlined text-3xl text-red-400">error</span>
+                        <button onClick={() => retryImage(i)} disabled={generatingImageIdx >= 0} className="px-4 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-full hover:bg-violet-700 disabled:opacity-50">
+                          Retry
+                        </button>
+                      </div>
                     ) : (
-                      <div className="absolute inset-0 flex items-center justify-center"><span className="material-symbols-outlined text-4xl text-outline-variant opacity-50">image</span></div>
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2">
+                        <span className="material-symbols-outlined text-4xl text-outline-variant opacity-50">image</span>
+                        <button onClick={() => retryImage(i)} disabled={generatingImageIdx >= 0} className="px-4 py-1.5 bg-violet-600 text-white text-xs font-bold rounded-full hover:bg-violet-700 disabled:opacity-50">
+                          Generate
+                        </button>
+                      </div>
                     )}
                     <div className="absolute top-4 left-4 bg-black/40 backdrop-blur-md text-white px-4 py-1.5 rounded-full font-bold text-sm">{scene.time}</div>
                   </div>
