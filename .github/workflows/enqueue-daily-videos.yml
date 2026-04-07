@@ -1,0 +1,17 @@
+name: Enqueue Daily Videos
+
+on:
+  schedule:
+    - cron: "5 0 * * *"
+  workflow_dispatch:
+
+jobs:
+  enqueue:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enqueue and trigger daily video batch
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/automation/trigger-parallel" \
+            -H "Content-Type: application/json" \
+            -H "x-automation-secret: ${{ secrets.AUTOMATION_SECRET }}" \
+            -d '{"count":10,"concurrency":3}'

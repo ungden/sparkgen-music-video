@@ -1,0 +1,17 @@
+name: Process Automation Jobs
+
+on:
+  schedule:
+    - cron: "15 * * * *"
+  workflow_dispatch:
+
+jobs:
+  process:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger queued jobs (auto-chain handles the rest)
+        run: |
+          curl -sf -X POST "${{ secrets.APP_URL }}/api/automation/trigger-parallel" \
+            -H "Content-Type: application/json" \
+            -H "x-automation-secret: ${{ secrets.AUTOMATION_SECRET }}" \
+            -d '{"count":0,"concurrency":3}' || true
