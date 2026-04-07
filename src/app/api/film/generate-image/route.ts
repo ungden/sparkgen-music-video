@@ -1,9 +1,14 @@
 import { getGeminiClient } from "@/lib/gemini";
 import { buildFilmImagePrompt } from "@/lib/film/prompts";
+import { requireAuth } from "@/lib/api-auth";
+import { AI_MODELS } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.description) {
       return NextResponse.json({ error: "description required" }, { status: 400 });
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
     }
 
     const result = await ai.models.generateContent({
-      model: "gemini-3.1-flash-image-preview",
+      model: AI_MODELS.IMAGE,
       contents,
       config: { responseModalities: ["IMAGE"], imageConfig: { aspectRatio: "16:9", imageSize: "2K" } },
     });

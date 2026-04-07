@@ -1,9 +1,14 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { AI_MODELS } from "@/lib/models";
+import { requireAuth } from "@/lib/api-auth";
 import { buildLyricsPrompt } from "@/lib/prompts";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.theme && !body.customPrompt) {
       return new Response(JSON.stringify({ error: "theme or customPrompt required" }), {
@@ -15,7 +20,7 @@ export async function POST(request: NextRequest) {
     const ai = getGeminiClient();
 
     const response = await ai.models.generateContentStream({
-      model: "gemini-3.1-pro-preview",
+      model: AI_MODELS.TEXT,
       contents: buildLyricsPrompt(body.theme || "", body.customPrompt, body.genreSlug),
       config: { temperature: 1.0 },
     });

@@ -1,4 +1,5 @@
 import { renderFinalVideo } from "@/lib/render";
+import { requireAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { execSync } from "node:child_process";
 
@@ -16,6 +17,9 @@ function hasFFmpeg(): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
 
     // If FFmpeg not available (e.g. Vercel), return video URLs for client-side download

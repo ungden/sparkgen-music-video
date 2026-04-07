@@ -11,7 +11,8 @@ export interface SubtitleCue {
 export async function generateAccurateSubtitlesFromAudio(
   audioBase64: string,
   audioMimeType: string,
-  lyrics: Lyrics
+  lyrics: Lyrics,
+  audioDuration?: number
 ): Promise<{ subtitles: SubtitleCue[]; tokens: { input: number; output: number } }> {
   const ai = getGeminiClient();
 
@@ -85,6 +86,14 @@ CRITICAL INSTRUCTIONS:
       });
 
       currentTime = end;
+    }
+  }
+
+  // Clamp to audio duration if provided
+  if (audioDuration && audioDuration > 0) {
+    for (const cue of finalCues) {
+      if (cue.endSeconds > audioDuration) cue.endSeconds = audioDuration;
+      if (cue.startSeconds > audioDuration) cue.startSeconds = audioDuration;
     }
   }
 

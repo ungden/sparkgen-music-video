@@ -1,14 +1,19 @@
 import { getGeminiClient } from "@/lib/gemini";
 import { buildStoryIdeasPrompt } from "@/lib/film/prompts";
+import { requireAuth } from "@/lib/api-auth";
+import { AI_MODELS } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json().catch(() => ({}));
     const ai = getGeminiClient();
 
     const result = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: AI_MODELS.TEXT,
       contents: buildStoryIdeasPrompt(body.topic, body.filmStyleSlug),
       config: { responseMimeType: "application/json", temperature: 1.0 },
     });

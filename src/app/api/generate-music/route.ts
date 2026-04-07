@@ -1,9 +1,14 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { AI_MODELS } from "@/lib/models";
+import { requireAuth } from "@/lib/api-auth";
 import { buildMusicPrompt } from "@/lib/prompts";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.lyrics) {
       return NextResponse.json({ error: "lyrics required" }, { status: 400 });
@@ -21,7 +26,7 @@ export async function POST(request: NextRequest) {
     );
 
     const response = await ai.models.generateContent({
-      model: "lyria-3-pro-preview",
+      model: AI_MODELS.MUSIC,
       contents: prompt,
       config: {
         responseModalities: ["AUDIO", "TEXT"],

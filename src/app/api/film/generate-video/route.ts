@@ -1,10 +1,15 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { requireAuth } from "@/lib/api-auth";
+import { AI_MODELS } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 300;
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if ((!body.imageBase64 && !body.imageUrl) || !body.prompt) {
       return NextResponse.json({ error: "imageBase64/imageUrl and prompt required" }, { status: 400 });
@@ -56,7 +61,7 @@ export async function POST(request: NextRequest) {
     }
 
     let operation = await ai.models.generateVideos({
-      model: "veo-3.1-lite-generate-preview", prompt: body.prompt,
+      model: AI_MODELS.VIDEO, prompt: body.prompt,
       image: { imageBytes: imageBytes!, mimeType: "image/png" },
       config: { aspectRatio: "16:9", resolution: "720p", durationSeconds: body.duration || 6, numberOfVideos: 1, personGeneration: "allow_adult" },
     });

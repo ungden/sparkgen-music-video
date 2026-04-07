@@ -1,4 +1,6 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { AI_MODELS } from "@/lib/models";
+import { requireAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export const maxDuration = 300;
@@ -52,7 +54,7 @@ async function generateWithPVideo(body: {
   );
 
   if (!createRes.ok) {
-    const err = await createRes.json().catch(() => ({}));
+    const err = await createRes.json().catch(() => ({ detail: `HTTP ${createRes.status}` }));
     throw new Error(err.detail || `Replicate API error: ${createRes.status}`);
   }
 
@@ -104,7 +106,7 @@ async function generateWithVeo(body: {
   }
 
   let operation = await ai.models.generateVideos({
-    model: "veo-3.1-lite-generate-preview",
+    model: AI_MODELS.VIDEO,
     prompt: body.prompt,
     image: {
       imageBytes: imageBytes!,
@@ -144,6 +146,9 @@ async function generateWithVeo(body: {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if ((!body.imageBase64 && !body.imageUrl) || !body.prompt) {
       return NextResponse.json(

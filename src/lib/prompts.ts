@@ -136,3 +136,29 @@ ${lyricsText}
 
 Make the chorus the emotional and melodic peak. This should be a full song spanning around 1.5 to 2 minutes.`;
 }
+
+// --- Catalogue helpers (used by automation pipeline) ---
+
+export function getCatalogueVisualStyle(genreSlug?: string): string {
+  const g = getGenre(genreSlug);
+  return g.defaultImageStyle;
+}
+
+export function getCatalogueCharacterPreset(genreSlug?: string): string {
+  return getGenre(genreSlug).sceneDirectorPersona;
+}
+
+export function getCatalogueMusicSpec(genreSlug?: string): {
+  genre: string;
+  mood: string;
+  tempo: string;
+  instruments: string;
+} {
+  const spec = getGenre(genreSlug).musicSpec;
+  return {
+    genre: spec.genre,
+    mood: spec.mood,
+    tempo: spec.tempo,
+    instruments: spec.instruments,
+  };
+}

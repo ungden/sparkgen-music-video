@@ -1,9 +1,14 @@
 import { getGeminiClient } from "@/lib/gemini";
 import { buildBackgroundMusicPrompt } from "@/lib/film/prompts";
+import { requireAuth } from "@/lib/api-auth";
+import { AI_MODELS } from "@/lib/models";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.synopsis) {
       return NextResponse.json({ error: "synopsis required" }, { status: 400 });
@@ -13,7 +18,7 @@ export async function POST(request: NextRequest) {
     const prompt = buildBackgroundMusicPrompt(body.synopsis, body.filmStyleSlug);
 
     const response = await ai.models.generateContent({
-      model: "lyria-3-pro-preview",
+      model: AI_MODELS.MUSIC,
       contents: prompt,
       config: { responseModalities: ["AUDIO", "TEXT"] },
     });

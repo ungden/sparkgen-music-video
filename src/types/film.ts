@@ -30,6 +30,7 @@ export interface FilmScene {
   videoUrl?: string;
   videoError?: string;
   narrationAudioBase64?: string;
+  narrationAudioUrl?: string;
   narrationMimeType?: string;
   narrationStatus?: "idle" | "generating" | "done" | "error";
   narrationError?: string;

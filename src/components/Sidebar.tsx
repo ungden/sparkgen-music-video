@@ -9,7 +9,10 @@ import type { User } from "@supabase/supabase-js";
 const navItems = [
   { icon: "home", label: "Home", href: "/dashboard", disabled: false },
   { icon: "movie_filter", label: "Projects", href: "/dashboard", disabled: false },
-  { icon: "settings", label: "Settings", href: "#", disabled: true },
+  { icon: "library_music", label: "Songs", href: "/dashboard/songs", disabled: false },
+  { icon: "smart_toy", label: "Automation", href: "/dashboard/automation", disabled: false },
+  { icon: "analytics", label: "Analytics", href: "/dashboard/analytics", disabled: false },
+  { icon: "settings", label: "Settings", href: "/dashboard/settings", disabled: false },
 ];
 
 export default function Sidebar() {

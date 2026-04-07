@@ -2,12 +2,14 @@
 
 import { Project } from "@/types/project";
 import { createClient } from "@/lib/supabase/client";
+import { mapDbProject } from "@/lib/supabase/db";
 import {
   createContext,
   useContext,
   useState,
   useEffect,
   useCallback,
+  useMemo,
   ReactNode,
 } from "react";
 import type { User } from "@supabase/supabase-js";
@@ -31,7 +33,7 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<Project[]>([]);
   const [currentProject, setCurrentProjectState] = useState<Project | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   // Auth listener
   useEffect(() => {
@@ -111,13 +113,14 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
           .from("projects")
           .update(dbUpdates)
           .eq("id", id);
-        if (error) console.error("Update project error:", error);
+        if (error) throw new Error(`Update project failed: ${error.message}`);
       }
 
-      // Update scenes if provided
+      // Update scenes if provided - use upsert to prevent data loss
       if (updates.scenes) {
-        await supabase.from("scenes").delete().eq("project_id", id);
-        if (updates.scenes.length > 0) {
+        if (updates.scenes.length === 0) {
+          await supabase.from("scenes").delete().eq("project_id", id);
+        } else {
           const rows = updates.scenes.map((s) => ({
             project_id: id,
             scene_number: s.id,
@@ -132,7 +135,18 @@ export function ProjectProvider({ children }: { children: ReactNode }) {
             video_url: s.videoUrl || null,
             video_error: s.videoError || null,
           }));
-          await supabase.from("scenes").insert(rows);
+          const { error: upsertError } = await supabase
+            .from("scenes")
+            .upsert(rows, { onConflict: "project_id,scene_number" });
+          if (upsertError) console.error("Upsert scenes error:", upsertError);
+
+          // Remove scenes no longer in the list
+          const sceneNumbers = updates.scenes.map((s) => s.id);
+          await supabase
+            .from("scenes")
+            .delete()
+            .eq("project_id", id)
+            .not("scene_number", "in", `(${sceneNumbers.join(",")})`);
         }
       }
 
@@ -217,42 +231,4 @@ export function useProject() {
   return ctx;
 }
 
-// --- DB row mapper ---
-function mapDbProject(row: Record<string, unknown>): Project {
-  const scenes = (row.scenes as Array<Record<string, unknown>>) || [];
-  return {
-    id: row.id as string,
-    title: row.title as string,
-    description: (row.description as string) || "",
-    genre: (row.genre as string) || undefined,
-    videoProvider: (row.video_provider as Project["videoProvider"]) || undefined,
-    status: row.status as Project["status"],
-    createdAt: row.created_at as string,
-    updatedAt: row.updated_at as string,
-    selectedTheme: row.selected_theme as Project["selectedTheme"],
-    customPrompt: row.custom_prompt as string | undefined,
-    characterPrompt: row.character_prompt as string | undefined,
-    artStyle: row.art_style as string | undefined,
-    lyrics: row.lyrics as Project["lyrics"],
-    music: row.music as Project["music"],
-    scenes: scenes
-      .sort((a, b) => (a.scene_number as number) - (b.scene_number as number))
-      .map((s) => {
-        const imgUrl = s.image_url as string | null;
-        return {
-          id: s.scene_number as number,
-          title: s.title as string,
-          time: s.time_range as string,
-          lyrics: (s.lyrics as string) || "",
-          description: (s.description as string) || "",
-          imageBase64: imgUrl?.startsWith("data:") ? imgUrl.split(",")[1] : undefined,
-          imageUrl: imgUrl && !imgUrl.startsWith("data:") ? imgUrl : undefined,
-          status: s.status as "pending" | "generating" | "done" | "error",
-          videoStatus: (s.video_status as "idle" | "generating" | "done" | "error") || undefined,
-          videoFileName: (s.video_file_name as string) || undefined,
-          videoUrl: (s.video_url as string) || undefined,
-          videoError: (s.video_error as string) || undefined,
-        };
-      }),
-  };
-}
+// mapDbProject is imported from @/lib/supabase/db

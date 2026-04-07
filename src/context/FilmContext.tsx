@@ -2,7 +2,7 @@
 
 import type { FilmProject, FilmScene, Script, FilmMusicTrack, FilmStyleSlug, VideoProvider } from "@/types/film";
 import { createClient } from "@/lib/supabase/client";
-import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from "react";
+import { createContext, useContext, useState, useEffect, useCallback, useMemo, ReactNode } from "react";
 import type { User } from "@supabase/supabase-js";
 
 interface FilmContextType {
@@ -24,7 +24,7 @@ export function FilmProvider({ children }: { children: ReactNode }) {
   const [projects, setProjects] = useState<FilmProject[]>([]);
   const [currentProject, setCurrentProjectState] = useState<FilmProject | null>(null);
   const [loading, setLoading] = useState(true);
-  const supabase = createClient();
+  const supabase = useMemo(() => createClient(), []);
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -92,8 +92,9 @@ export function FilmProvider({ children }: { children: ReactNode }) {
     }
 
     if (updates.scenes) {
-      await supabase.from("film_scenes").delete().eq("project_id", id);
-      if (updates.scenes.length > 0) {
+      if (updates.scenes.length === 0) {
+        await supabase.from("film_scenes").delete().eq("project_id", id);
+      } else {
         const rows = updates.scenes.map((s) => ({
           project_id: id,
           scene_number: s.id,
@@ -108,11 +109,21 @@ export function FilmProvider({ children }: { children: ReactNode }) {
           video_url: s.videoUrl || null,
           video_file_name: s.videoFileName || null,
           video_error: s.videoError || null,
-          narration_audio_url: s.narrationAudioBase64 ? `data:${s.narrationMimeType || "audio/mp3"};base64,${s.narrationAudioBase64}` : null,
+          narration_audio_url: s.narrationAudioUrl || (s.narrationAudioBase64 ? `data:${s.narrationMimeType || "audio/mp3"};base64,${s.narrationAudioBase64}` : null),
           narration_status: s.narrationStatus || "idle",
           narration_error: s.narrationError || null,
         }));
-        await supabase.from("film_scenes").insert(rows);
+        const { error: upsertError } = await supabase
+          .from("film_scenes")
+          .upsert(rows, { onConflict: "project_id,scene_number" });
+        if (upsertError) console.error("Upsert film scenes error:", upsertError);
+
+        const sceneNumbers = updates.scenes.map((s) => s.id);
+        await supabase
+          .from("film_scenes")
+          .delete()
+          .eq("project_id", id)
+          .not("scene_number", "in", `(${sceneNumbers.join(",")})`);
       }
     }
 

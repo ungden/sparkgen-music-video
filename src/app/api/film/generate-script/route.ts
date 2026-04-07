@@ -1,9 +1,14 @@
 import { getGeminiClient } from "@/lib/gemini";
 import { buildScriptPrompt } from "@/lib/film/prompts";
+import { requireAuth } from "@/lib/api-auth";
+import { AI_MODELS } from "@/lib/models";
 import { NextRequest } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.storyIdea && !body.customPrompt) {
       return new Response(JSON.stringify({ error: "storyIdea or customPrompt required" }), {
@@ -13,7 +18,7 @@ export async function POST(request: NextRequest) {
 
     const ai = getGeminiClient();
     const response = await ai.models.generateContentStream({
-      model: "gemini-3.1-pro-preview",
+      model: AI_MODELS.TEXT,
       contents: buildScriptPrompt(body.storyIdea || "", body.customPrompt, body.filmStyleSlug),
       config: { temperature: 1.0 },
     });

@@ -1,14 +1,22 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { AI_MODELS } from "@/lib/models";
+import { requireAuth } from "@/lib/api-auth";
 import { buildIdeasPrompt } from "@/lib/prompts";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json().catch(() => ({}));
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
+    const body = await request.json().catch((err: unknown) => {
+      console.error("generate-ideas: invalid JSON body", err);
+      return {};
+    });
     const ai = getGeminiClient();
 
     const result = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: AI_MODELS.TEXT,
       contents: buildIdeasPrompt(body.genre, body.genreSlug),
       config: {
         responseMimeType: "application/json",

@@ -68,10 +68,12 @@ export async function deleteProject(id: string): Promise<void> {
 // --- Scenes ---
 
 export async function upsertScenes(projectId: string, scenes: Scene[]): Promise<void> {
-  // Delete existing scenes for project, then insert fresh
-  await supabase.from("scenes").delete().eq("project_id", projectId);
-
-  if (scenes.length === 0) return;
+  if (scenes.length === 0) {
+    // Only delete if explicitly clearing all scenes
+    const { error } = await supabase.from("scenes").delete().eq("project_id", projectId);
+    if (error) throw error;
+    return;
+  }
 
   const rows = scenes.map((s) => ({
     project_id: projectId,
@@ -80,15 +82,28 @@ export async function upsertScenes(projectId: string, scenes: Scene[]): Promise<
     time_range: s.time,
     lyrics: s.lyrics,
     description: s.description,
-    image_url: s.imageBase64 ? `data:image/png;base64,${s.imageBase64}` : null,
+    image_url: s.imageUrl || (s.imageBase64 ? `data:image/png;base64,${s.imageBase64}` : null),
     status: s.status,
     video_status: s.videoStatus || "idle",
     video_file_name: s.videoFileName || null,
+    video_url: s.videoUrl || null,
     video_error: s.videoError || null,
   }));
 
-  const { error } = await supabase.from("scenes").insert(rows);
-  if (error) throw error;
+  // Upsert instead of delete+insert to prevent data loss on partial failure
+  const { error: upsertError } = await supabase
+    .from("scenes")
+    .upsert(rows, { onConflict: "project_id,scene_number" });
+  if (upsertError) throw upsertError;
+
+  // Remove scenes that no longer exist (scene numbers not in the new set)
+  const sceneNumbers = scenes.map((s) => s.id);
+  const { error: deleteError } = await supabase
+    .from("scenes")
+    .delete()
+    .eq("project_id", projectId)
+    .not("scene_number", "in", `(${sceneNumbers.join(",")})`);
+  if (deleteError) throw deleteError;
 }
 
 // --- Storage (for images) ---
@@ -132,48 +147,43 @@ export async function uploadAudio(
   return data.publicUrl;
 }
 
-// --- Mappers ---
+// --- Mappers (shared - also used by ProjectContext) ---
 
-interface DbScene {
-  scene_number: number;
-  title: string;
-  time_range: string;
-  lyrics: string | null;
-  description: string | null;
-  image_url: string | null;
-  status: string;
-  video_status: string | null;
-  video_file_name: string | null;
-  video_error: string | null;
-}
-
-function mapDbProject(row: Record<string, unknown>): Project {
-  const scenes = (row.scenes as DbScene[] | undefined) || [];
+export function mapDbProject(row: Record<string, unknown>): Project {
+  const scenes = (row.scenes as Array<Record<string, unknown>>) || [];
   return {
     id: row.id as string,
     title: row.title as string,
     description: (row.description as string) || "",
     genre: (row.genre as string) || undefined,
+    videoProvider: (row.video_provider as Project["videoProvider"]) || undefined,
     status: row.status as Project["status"],
     createdAt: row.created_at as string,
     updatedAt: row.updated_at as string,
     selectedTheme: row.selected_theme as ThemeIdea | undefined,
     customPrompt: row.custom_prompt as string | undefined,
+    characterPrompt: row.character_prompt as string | undefined,
+    artStyle: row.art_style as string | undefined,
     lyrics: row.lyrics as Lyrics | undefined,
     music: row.music as MusicTrack | undefined,
     scenes: scenes
-      .sort((a, b) => a.scene_number - b.scene_number)
-      .map((s) => ({
-        id: s.scene_number,
-        title: s.title,
-        time: s.time_range,
-        lyrics: s.lyrics || "",
-        description: s.description || "",
-        imageBase64: s.image_url?.startsWith("data:") ? s.image_url.split(",")[1] : undefined,
-        status: s.status as Scene["status"],
-        videoStatus: (s.video_status as Scene["videoStatus"]) || undefined,
-        videoFileName: s.video_file_name || undefined,
-        videoError: s.video_error || undefined,
-      })),
+      .sort((a, b) => (a.scene_number as number) - (b.scene_number as number))
+      .map((s) => {
+        const imgUrl = s.image_url as string | null;
+        return {
+          id: s.scene_number as number,
+          title: s.title as string,
+          time: s.time_range as string,
+          lyrics: (s.lyrics as string) || "",
+          description: (s.description as string) || "",
+          imageBase64: imgUrl?.startsWith("data:") ? imgUrl.split(",")[1] : undefined,
+          imageUrl: imgUrl && !imgUrl.startsWith("data:") ? imgUrl : undefined,
+          status: s.status as Scene["status"],
+          videoStatus: (s.video_status as Scene["videoStatus"]) || undefined,
+          videoFileName: (s.video_file_name as string) || undefined,
+          videoUrl: (s.video_url as string) || undefined,
+          videoError: (s.video_error as string) || undefined,
+        };
+      }),
   };
 }

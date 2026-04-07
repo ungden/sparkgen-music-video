@@ -1,8 +1,12 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { requireAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.text) {
       return NextResponse.json({ error: "text required" }, { status: 400 });

@@ -1,4 +1,6 @@
 import { getGeminiClient } from "@/lib/gemini";
+import { AI_MODELS } from "@/lib/models";
+import { requireAuth } from "@/lib/api-auth";
 import { buildScenesPrompt } from "@/lib/prompts";
 import { normalizeGeneratedScenes } from "@/lib/scenes";
 import { Lyrics } from "@/types/project";
@@ -6,6 +8,9 @@ import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
     if (!body.lyrics || !body.theme) {
       return NextResponse.json({ error: "lyrics and theme required" }, { status: 400 });
@@ -19,7 +24,7 @@ export async function POST(request: NextRequest) {
     const numScenes = Number(body.numScenes || 8);
 
     const result = await ai.models.generateContent({
-      model: "gemini-3.1-pro-preview",
+      model: AI_MODELS.TEXT,
       contents: buildScenesPrompt(lyricsText, body.theme, numScenes, body.genreSlug),
       config: {
         responseMimeType: "application/json",

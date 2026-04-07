@@ -1,4 +1,5 @@
 import { renderFilmVideo } from "@/lib/film/render";
+import { requireAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { execSync } from "node:child_process";
 
@@ -11,6 +12,9 @@ function hasFFmpeg(): boolean {
 
 export async function POST(request: NextRequest) {
   try {
+    const auth = await requireAuth();
+    if (auth.error) return auth.error;
+
     const body = await request.json();
 
     if (!hasFFmpeg()) {
