@@ -4,16 +4,18 @@ import Sidebar from "@/components/Sidebar";
 import TopNav from "@/components/TopNav";
 import { useProject } from "@/context/ProjectContext";
 import { useFilm } from "@/context/FilmContext";
+import { useRock } from "@/context/RockContext";
 import { Project } from "@/types/project";
 import { FilmProject } from "@/types/film";
+import { RockProject } from "@/types/rock";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-type AnyProject = { type: "music"; data: Project } | { type: "film"; data: FilmProject };
+type AnyProject = { type: "music"; data: Project } | { type: "film"; data: FilmProject } | { type: "rock"; data: RockProject };
 
-function StatusBadge({ status, type }: { status: string; type: "music" | "film" }) {
-  const color = type === "film" ? "bg-violet-100 text-violet-700" : "bg-primary-container text-on-primary-container";
+function StatusBadge({ status, type }: { status: string; type: "music" | "film" | "rock" }) {
+  const color = type === "rock" ? "bg-red-100 text-red-700" : type === "film" ? "bg-violet-100 text-violet-700" : "bg-primary-container text-on-primary-container";
   const labels: Record<string, string> = { idea: "Drafting", storyboard: "Storyboarding", animation: "Animating", editing: "Editing", rendering: "Rendering", finished: "Finished" };
   return (
     <span className={`text-xs font-black px-3 py-1 rounded-full flex items-center gap-1.5 w-fit ${status === "finished" ? color : "bg-surface-container-highest text-on-surface-variant"}`}>
@@ -23,10 +25,10 @@ function StatusBadge({ status, type }: { status: string; type: "music" | "film" 
   );
 }
 
-function TypeBadge({ type }: { type: "music" | "film" }) {
-  return type === "film"
-    ? <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-600">Film</span>
-    : <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-600">Music Video</span>;
+function TypeBadge({ type }: { type: "music" | "film" | "rock" }) {
+  if (type === "rock") return <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-red-100 text-red-600">Rock</span>;
+  if (type === "film") return <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-violet-100 text-violet-600">Film</span>;
+  return <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-600">Music Video</span>;
 }
 
 function getImage(p: AnyProject): string | null {
@@ -39,12 +41,13 @@ function getImage(p: AnyProject): string | null {
 
 function getHref(p: AnyProject): string {
   const d = p.data;
-  const base = p.type === "film" ? `/film/${d.id}` : `/project/${d.id}`;
+  const base = p.type === "rock" ? `/rock/${d.id}` : p.type === "film" ? `/film/${d.id}` : `/project/${d.id}`;
   if (d.status === "finished" || d.status === "editing") return `${base}/editor`;
   if (d.status === "animation") return `${base}/animation`;
   if (d.scenes?.length) return `${base}/animation`;
   if (p.type === "music" && (d as Project).lyrics) return `${base}/storyboard`;
   if (p.type === "film" && (d as FilmProject).script) return `${base}/storyboard`;
+  if (p.type === "rock" && (d as RockProject).lyrics) return `${base}/storyboard`;
   return `${base}/idea`;
 }
 
@@ -53,33 +56,39 @@ function getSubtext(p: AnyProject): string {
   if (d.scenes?.length) return `${d.scenes.length} scenes`;
   if (p.type === "music" && (d as Project).lyrics) return "Lyrics ready";
   if (p.type === "film" && (d as FilmProject).script) return "Script ready";
+  if (p.type === "rock" && (d as RockProject).lyrics) return "Lyrics ready";
   return "Just started";
 }
 
 export default function Dashboard() {
   const { projects: musicProjects, createProject: createMusicProject, deleteProject: deleteMusicProject, updateProject: updateMusicProject, loading: musicLoading } = useProject();
   const { projects: filmProjects, createProject: createFilmProject, deleteProject: deleteFilmProject, updateProject: updateFilmProject, loading: filmLoading } = useFilm();
-  const isLoading = musicLoading || filmLoading;
+  const { projects: rockProjects, createProject: createRockProject, deleteProject: deleteRockProject, updateProject: updateRockProject, loading: rockLoading } = useRock();
+  const isLoading = musicLoading || filmLoading || rockLoading;
   const router = useRouter();
   const [showNewModal, setShowNewModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
   const [confirmDelete, setConfirmDelete] = useState<AnyProject | null>(null);
-  const [filter, setFilter] = useState<"all" | "music" | "film">("all");
+  const [filter, setFilter] = useState<"all" | "music" | "film" | "rock">("all");
 
   // Merge and sort all projects by date
   const allProjects: AnyProject[] = [
     ...musicProjects.map((p) => ({ type: "music" as const, data: p })),
     ...filmProjects.map((p) => ({ type: "film" as const, data: p })),
+    ...rockProjects.map((p) => ({ type: "rock" as const, data: p })),
   ].sort((a, b) => new Date(b.data.updatedAt).getTime() - new Date(a.data.updatedAt).getTime());
 
   const filtered = filter === "all" ? allProjects : allProjects.filter((p) => p.type === filter);
 
-  const handleCreate = async (type: "music" | "film") => {
+  const handleCreate = async (type: "music" | "film" | "rock") => {
     setShowNewModal(false);
     if (type === "music") {
       const id = await createMusicProject();
       router.push(`/project/${id}/idea`);
+    } else if (type === "rock") {
+      const id = await createRockProject();
+      router.push(`/rock/${id}/idea`);
     } else {
       const id = await createFilmProject();
       router.push(`/film/${id}/idea`);
@@ -89,6 +98,7 @@ export default function Dashboard() {
   const handleDelete = () => {
     if (!confirmDelete) return;
     if (confirmDelete.type === "music") deleteMusicProject(confirmDelete.data.id);
+    else if (confirmDelete.type === "rock") deleteRockProject(confirmDelete.data.id);
     else deleteFilmProject(confirmDelete.data.id);
     setConfirmDelete(null);
   };
@@ -96,6 +106,7 @@ export default function Dashboard() {
   const handleRename = (p: AnyProject) => {
     if (!editingId || !editTitle.trim()) { setEditingId(null); return; }
     if (p.type === "music") updateMusicProject(editingId, { title: editTitle.trim() });
+    else if (p.type === "rock") updateRockProject(editingId, { title: editTitle.trim() });
     else updateFilmProject(editingId, { title: editTitle.trim() });
     setEditingId(null);
   };
@@ -112,8 +123,8 @@ export default function Dashboard() {
             <p className="text-on-surface-variant font-medium">Create AI-powered videos from idea to final render</p>
           </header>
 
-          {/* Create New — 2 big cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-10">
+          {/* Create New — 3 big cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-10">
             <button onClick={() => handleCreate("music")} className="flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-r from-blue-50 to-blue-100 border-2 border-blue-200 hover:border-blue-400 hover:shadow-lg transition-all text-left group">
               <div className="w-14 h-14 rounded-2xl bg-blue-500 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-blue-500/20">
                 <span className="material-symbols-outlined text-white text-2xl filled">music_video</span>
@@ -134,15 +145,25 @@ export default function Dashboard() {
               </div>
               <span className="material-symbols-outlined text-violet-400 ml-auto text-xl">arrow_forward</span>
             </button>
+            <button onClick={() => handleCreate("rock")} className="flex items-center gap-5 p-6 rounded-2xl bg-gradient-to-r from-red-50 to-red-100 border-2 border-red-200 hover:border-red-400 hover:shadow-lg transition-all text-left group">
+              <div className="w-14 h-14 rounded-2xl bg-red-700 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform shadow-lg shadow-red-700/20">
+                <span className="material-symbols-outlined text-white text-2xl filled">electric_guitar</span>
+              </div>
+              <div>
+                <h3 className="font-black text-lg text-on-surface mb-0.5">New Rock Song</h3>
+                <p className="text-xs text-on-surface-variant">AI rock storytelling &mdash; legends, heroes &amp; history</p>
+              </div>
+              <span className="material-symbols-outlined text-red-400 ml-auto text-xl">arrow_forward</span>
+            </button>
           </div>
 
           {/* Filter Tabs + Project Count */}
           {allProjects.length > 0 && (
             <div className="flex items-center justify-between mb-6">
               <div className="flex gap-2">
-                {(["all", "music", "film"] as const).map((f) => (
+                {(["all", "music", "film", "rock"] as const).map((f) => (
                   <button key={f} onClick={() => setFilter(f)} className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${filter === f ? "bg-primary text-on-primary shadow" : "bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest"}`}>
-                    {f === "all" ? `All (${allProjects.length})` : f === "music" ? `Music Videos (${musicProjects.length})` : `Films (${filmProjects.length})`}
+                    {f === "all" ? `All (${allProjects.length})` : f === "music" ? `Music (${musicProjects.length})` : f === "film" ? `Films (${filmProjects.length})` : `Rock (${rockProjects.length})`}
                   </button>
                 ))}
               </div>

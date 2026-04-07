@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Plus_Jakarta_Sans } from "next/font/google";
 import { ProjectProvider } from "@/context/ProjectContext";
 import { FilmProvider } from "@/context/FilmContext";
+import { RockProvider } from "@/context/RockContext";
 import "./globals.css";
 
 const plusJakartaSans = Plus_Jakarta_Sans({
@@ -41,7 +42,7 @@ export default function RootLayout({
         />
       </head>
       <body className="min-h-full antialiased bg-surface text-on-surface selection:bg-primary/20">
-        <ProjectProvider><FilmProvider>{children}</FilmProvider></ProjectProvider>
+        <ProjectProvider><FilmProvider><RockProvider>{children}</RockProvider></FilmProvider></ProjectProvider>
       </body>
     </html>
   );

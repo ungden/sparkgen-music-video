@@ -137,6 +137,126 @@ ${lyricsText}
 Make the chorus the emotional and melodic peak. This should be a full song spanning around 1.5 to 2 minutes.`;
 }
 
+// --- Rock Legends AI prompt builders ---
+
+import { getRockCategory } from "./rock-categories";
+
+export function buildRockIdeasPrompt(categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  return `${cat.songwriterPersona}
+
+Generate exactly 4 unique rock song theme ideas for the "${cat.label}" category.
+Each idea should feature a specific historical or fictional character with a dramatic story angle.
+
+For fictional hero characters: create ORIGINAL characters with unique names — do NOT use any copyrighted names (no Superman, Batman, Spider-Man, etc.). Instead create legally distinct originals inspired by archetypes.
+
+Return a JSON array with exactly 4 objects:
+[
+  {
+    "icon": "material_icon_name",
+    "title": "Song Title (catchy, dramatic)",
+    "desc": "One-sentence story angle (what dramatic moment or arc does this song capture?)",
+    "color": "${cat.color}",
+    "iconColor": "#FFD700",
+    "categorySlug": "${cat.slug}",
+    "characterName": "Character Name",
+    "storyAngle": "Brief story description"
+  }
+]
+
+Make each idea feel like a movie trailer in one sentence.`;
+}
+
+export function buildRockLyricsPrompt(theme: string, customPrompt?: string, categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  return `${cat.songwriterPersona}
+
+Write a rock song about: ${customPrompt || theme}
+
+${cat.lyricsRules}
+
+FORMAT (output ONLY the lyrics, no commentary):
+[Verse 1]
+(6 lines)
+
+[Chorus]
+(6 lines)
+
+[Verse 2]
+(6 lines)
+
+[Outro]
+(4-6 lines)`;
+}
+
+export function buildRockImagePrompt(description: string, categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  return `Create an illustration in this style: ${cat.defaultImageStyle}
+
+Character reference: ${cat.sceneDirectorPersona}
+
+Scene: ${description}
+
+CRITICAL: Semi-realistic animated style, NOT cartoon, NOT photorealistic. Dark cinematic aesthetic suitable for an adult rock music video. Original character designs only — do NOT recreate any copyrighted characters.
+The image should be in 16:9 widescreen aspect ratio.`;
+}
+
+export function buildRockVideoPrompt(sceneDescription: string, categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  return `${cat.videoAnimationStyle}
+
+Scene: ${sceneDescription}
+
+Smooth cinematic camera movement, atmospheric effects. Semi-realistic animated style, dark and dramatic.`;
+}
+
+export function buildRockMusicPrompt(lyricsText: string, categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  const spec = cat.musicSpec;
+  return `Create a full-length rock song track with vocals.
+
+Genre: ${spec.genre}
+Mood: ${spec.mood}
+Tempo: ${spec.tempo}
+Instruments: ${spec.instruments}
+
+VOCAL INSTRUCTIONS:
+${spec.vocalStyle}
+
+LYRICS:
+${lyricsText}
+
+Make the chorus the emotional and melodic peak. This should be a full song spanning around 1.5 to 2 minutes. This is ROCK music for ADULTS — powerful, dramatic, and intense.`;
+}
+
+export function buildRockScenesPrompt(lyricsText: string, theme: string, categorySlug?: string): string {
+  const cat = getRockCategory(categorySlug);
+  return `You are a cinematic scene director for dark, epic rock music videos.
+
+Visual style: ${cat.defaultImageStyle}
+Character style: ${cat.sceneDirectorPersona}
+
+Song theme: ${theme}
+
+Lyrics:
+${lyricsText}
+
+Create exactly 8 scenes for this rock music video. Each scene should match a portion of the lyrics.
+
+Return a JSON array:
+[
+  {
+    "id": 1,
+    "title": "Scene title",
+    "time": "0:00 - 0:06",
+    "lyrics": "The lyrics this scene covers",
+    "description": "Detailed visual description for AI image generation. Include character appearance, pose, environment, lighting, camera angle. Must match the semi-realistic animated style."
+  }
+]
+
+CRITICAL: Scenes must be visually dramatic and cinematic. Dark, epic atmosphere. NOT cute or cartoon.`;
+}
+
 // --- Catalogue helpers (used by automation pipeline) ---
 
 export function getCatalogueVisualStyle(genreSlug?: string): string {
